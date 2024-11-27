@@ -1,4 +1,4 @@
-# Bias and Variance in Machine Learning
+# XgBoost vs Random Forest: Which is better to handle Bias and Variance in Machine Learning
 
 ## **Bias**
 - Refers to the error due to overly simplistic assumptions in the model.
