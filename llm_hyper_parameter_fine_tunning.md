@@ -1,4 +1,4 @@
-# Fine-Tuning Large Language Models (LLMs)
+# Fine-Tuning Hyperparameters of LLMs
 
 This guide provides an overview of hyperparameters for LLMs and demonstrates how to fine-tune these models using Python code.
 
