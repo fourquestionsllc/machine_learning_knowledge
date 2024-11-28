@@ -40,3 +40,55 @@ Fine-tuning adjusts a pretrained LLM to a specific task using smaller, task-spec
 Install the necessary libraries:
 ```bash
 pip install transformers datasets accelerate
+```
+
+### **Code for Fine-Tuning***
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
+from datasets import load_dataset
+
+# Load pretrained model and tokenizer
+model_name = "gpt2"
+model = AutoModelForCausalLM.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+# Load and preprocess dataset
+dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
+def preprocess_function(examples):
+    return tokenizer(examples['text'], truncation=True, padding="max_length", max_length=128)
+
+tokenized_datasets = dataset.map(preprocess_function, batched=True)
+tokenized_datasets = tokenized_datasets.remove_columns(["text"])
+tokenized_datasets.set_format("torch")
+
+# Define training arguments
+training_args = TrainingArguments(
+    output_dir="./results",
+    evaluation_strategy="epoch",
+    learning_rate=5e-5,
+    per_device_train_batch_size=8,
+    per_device_eval_batch_size=8,
+    num_train_epochs=3,
+    weight_decay=0.01,
+    warmup_steps=500,
+    logging_dir="./logs",
+    logging_steps=10,
+    save_strategy="epoch",
+    fp16=True,  # Use mixed precision for faster training
+)
+
+# Create Trainer object
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_datasets["train"],
+    eval_dataset=tokenized_datasets["validation"],
+)
+
+# Fine-tune the model
+trainer.train()
+
+# Save the model
+model.save_pretrained("./fine_tuned_gpt2")
+tokenizer.save_pretrained("./fine_tuned_gpt2")
