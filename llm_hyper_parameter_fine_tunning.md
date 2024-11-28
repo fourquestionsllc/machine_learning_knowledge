@@ -101,3 +101,48 @@ tokenizer.save_pretrained("./fine_tuned_gpt2")
 * per_device_train_batch_size=8: Process 8 samples per training step on each GPU.
 * weight_decay=0.01: Helps regularize the model to avoid overfitting.
 * warmup_steps=500: Gradually increases the learning rate for the first 500 steps.
+
+# Hyperparameter Tuning
+
+To optimize hyperparameters, you can use grid search or libraries like Optuna or Ray Tune.
+
+## Example: Using Optuna for Hyperparameter Search
+
+```python
+import optuna
+from transformers import TrainingArguments
+
+def objective(trial):
+    # Define the hyperparameter search space
+    learning_rate = trial.suggest_loguniform("learning_rate", 1e-5, 1e-3)
+    batch_size = trial.suggest_categorical("batch_size", [8, 16, 32])
+    
+    training_args = TrainingArguments(
+        output_dir="./results",
+        learning_rate=learning_rate,
+        per_device_train_batch_size=batch_size,
+        num_train_epochs=3,
+        evaluation_strategy="epoch",
+    )
+    
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=tokenized_datasets["train"],
+        eval_dataset=tokenized_datasets["validation"],
+    )
+    
+    # Evaluate the model
+    eval_result = trainer.evaluate()
+    return eval_result["eval_loss"]
+
+# Run Optuna optimization
+study = optuna.create_study(direction="minimize")
+study.optimize(objective, n_trials=10)
+
+# Best hyperparameters
+print(study.best_params)
+```
+# Summary
+
+This guide demonstrates how to fine-tune LLMs like GPT-2 using the Hugging Face library. The hyperparameter tuning example uses Optuna to optimize learning rate and batch size for improved performance. Adjustments can be made for larger models or tasks such as classification and summarization.
