@@ -1,4 +1,4 @@
-# Hyperparameter Fine-Tuning Methods for LLMs
+# Hyperparameter Fine-Tuning Methods for LLMs: Methods and Comparison
 
 This document provides an overview of the most popular hyperparameter fine-tuning methods for Large Language Models (LLMs), their advantages and disadvantages, and a comparison to help you choose the right method.
 
