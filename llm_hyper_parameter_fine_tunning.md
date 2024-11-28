@@ -92,3 +92,12 @@ trainer.train()
 # Save the model
 model.save_pretrained("./fine_tuned_gpt2")
 tokenizer.save_pretrained("./fine_tuned_gpt2")
+```
+
+### **Explanation of Key Hyperparameters in Code**
+
+* learning_rate=5e-5: A commonly used learning rate for fine-tuning.
+* num_train_epochs=3: Fine-tune for 3 passes over the training data.
+* per_device_train_batch_size=8: Process 8 samples per training step on each GPU.
+* weight_decay=0.01: Helps regularize the model to avoid overfitting.
+* warmup_steps=500: Gradually increases the learning rate for the first 500 steps.
