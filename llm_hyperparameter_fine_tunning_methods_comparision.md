@@ -1,4 +1,4 @@
-# Hyperparameter Fine-Tuning Methods for LLMs: Methods and Comparison
+# Hyperparameter Fine-Tuning Methods for LLMs
 
 This document provides an overview of the most popular hyperparameter fine-tuning methods for Large Language Models (LLMs), their advantages and disadvantages, and a comparison to help you choose the right method.
 
@@ -92,4 +92,30 @@ PBT maintains a population of models and periodically mutates and evolves their 
 | Method                | Efficiency | Scalability | Adaptiveness | Computational Cost | Ease of Implementation |
 |-----------------------|------------|-------------|--------------|--------------------|-------------------------|
 | **Grid Search**       | Low        | Poor        | None         | High               | Easy                   |
-| **Random Search**     | Medium     | Good        | None     
+| **Random Search**     | Medium     | Good        | None         | Medium             | Easy                   |
+| **Bayesian Optimization** | High    | Moderate    | High         | Medium-High        | Moderate               |
+| **Hyperband**         | High       | Good        | Medium       | Low                | Moderate               |
+| **Optuna**            | High       | Good        | High         | Medium             | Moderate               |
+| **PBT**               | High       | Good        | Very High    | Very High          | Complex                |
+
+---
+
+## Recommendations
+
+1. **For Small-Scale Problems or Limited Resources**:
+   - Start with **Random Search** for simplicity and reasonable efficiency.
+   - Use **Grid Search** if the hyperparameter space is small and computational resources are not a concern.
+
+2. **For Large Models or High Costs (e.g., LLMs)**:
+   - Use **Bayesian Optimization** or **Optuna** for efficient exploration with fewer evaluations.
+   - **Hyperband** is a good alternative when you want to stop poor configurations early.
+
+3. **For Adaptive and Complex Needs**:
+   - Choose **Population-Based Training (PBT)** if you want dynamic adjustment of hyperparameters during training and have ample computational resources.
+
+4. **Hybrid Approach**:
+   - Combine methods, e.g., use **Optuna** with **early stopping** for faster and more efficient tuning.
+
+---
+
+By balancing computational cost and the desired level of precision, you can select the appropriate fine-tuning strategy for your LLM application.
