@@ -41,7 +41,7 @@ Here’s a step-by-step explanation with an example to make it simple:
 4. **Update the Q-Value**:  
    Use the **Q-learning formula** to update the Q-value:
    
-   $$Q[s, a] = Q[s, a] + \alpha \left[ R + \gamma \max Q[s', a'] - Q[s, a] \right]$$
+   $$ Q[s, a] = Q[s, a] + \alpha \left[ R + \gamma \max Q[s', a'] - Q[s, a] \right] $$
    
    - $$\( \alpha \)$$: Learning rate (how much to update).  
    - $$\( \gamma \)$$: Discount factor (importance of future rewards).  
@@ -75,6 +75,7 @@ Imagine a 3x3 grid world where:
 2. Randomly picks **RIGHT** (exploration).
 3. Moves to **(0, 1)** and receives reward \( R = 0 \).
 4. Updates \( Q[0,0,RIGHT] \) using the formula:
+   
    $$   Q[0,0,RIGHT] = 0 + 0.1 \times \left[ 0 + 0.9 \times \max Q[0,1] - 0 \right] $$
 
 ### Second Action
