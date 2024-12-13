@@ -75,6 +75,7 @@ Here’s a simplified pseudocode for a basic Contextual Bandit algorithm:
    2. **Select action**:
       - With probability $`\epsilon`$, choose a random action (exploration).
       - Otherwise, choose:
+        
         $$
         a_t = \arg\max_a (x_t^T \theta_a)
         $$
