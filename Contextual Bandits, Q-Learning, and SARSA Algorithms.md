@@ -6,13 +6,13 @@ Contextual Bandits are a variant of multi-armed bandits where decisions (actions
 #### **2. Q-Learning Algorithm**
 Q-Learning is a model-free reinforcement learning algorithm that estimates the value (Q-value) of taking an action in a given state. It updates the Q-value using the Bellman equation:
 
-$$ \[Q(s, a) \leftarrow Q(s, a) + \alpha [r + \gamma \max_{a'} Q(s', a') - Q(s, a)]\] $$
+$$ Q(s, a) \leftarrow Q(s, a) + \alpha [r + \gamma \max_{a'} Q(s', a') - Q(s, a)] $$
 
-- \(s, a\): Current state and action.
-- \(r\): Reward received.
-- \(\alpha\): Learning rate.
-- \(\gamma\): Discount factor.
-- \(s', a'\): Next state and action.
+- $$\(s, a\)$$: Current state and action.
+- $$\(r\)$$: Reward received.
+- $$\(\alpha\)$$: Learning rate.
+- $$\(\gamma\)$$: Discount factor.
+- $\(s', a'\)$$: Next state and action.
 
 
 #### **3. SARSA Algorithm**
