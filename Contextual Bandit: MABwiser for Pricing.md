@@ -1,3 +1,51 @@
+To use a **contextual bandit algorithm** for price optimization, you can follow these steps: 
+
+---
+
+### 1. **Define the Problem**
+- **Context:** Variables describing the scenario (e.g., product category, store location, seasonal index, historical sales trends).
+- **Actions:** Prices that you can set for the product.
+- **Reward:** Revenue generated at the chosen price (price × sales).
+
+The goal is to learn the mapping between contexts and the optimal price (action) to maximize revenue.
+
+---
+
+### 2. **Approach**
+We'll use a **contextual bandit** framework where:
+- Each context is used to predict an optimal price.
+- Rewards are observed based on selected actions, allowing incremental learning.
+
+#### Framework
+- **Exploration**: Try different prices to discover their impact on revenue.
+- **Exploitation**: Choose prices with the highest expected reward based on current knowledge.
+
+---
+
+### 3. **Training Steps**
+1. **Collect Data**
+   - Gather historical data for training:
+     - **Context**: Features like product ID, store ID, seasonal index, sales history.
+     - **Actions**: Prices offered in the past.
+     - **Rewards**: Revenues generated.
+
+2. **Build the Contextual Bandit Model**
+   - Use an exploration-exploitation strategy like:
+     - **Epsilon-Greedy**: Randomly explore with probability \(\epsilon\) and exploit the best-known price otherwise.
+     - **Thompson Sampling**: Use probabilistic estimates of rewards for decision-making.
+     - **Upper Confidence Bound (UCB)**: Choose the price with the highest upper confidence bound on the expected reward.
+
+3. **Implement the Algorithm**
+   - Train a supervised model (e.g., linear regression, decision trees, or neural networks) to predict rewards for each price.
+   - Update model weights iteratively as new data is observed.
+
+4. **Deploy and Update**
+   - Deploy the model in an environment where it can dynamically adjust prices.
+   - Use real-time feedback to improve reward predictions.
+  
+---
+
+
 The **`mabwiser`** library is a Python package that simplifies Multi-Armed Bandit (MAB) implementations, including contextual bandit algorithms. Here's how to use it for price optimization where the context, actions, and rewards are as described.
 
 ---
