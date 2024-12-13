@@ -10,7 +10,7 @@ Contextual Bandits are a type of reinforcement learning problem where an agent c
 1. **Context**: At each time step, the agent observes a **context** \(x\), which describes the situation.
 2. **Action**: The agent chooses an action \(a\) (an arm of the bandit) based on the context \(x\).
 3. **Reward**: The agent receives a reward \(r\), which depends on both the chosen action \(a\) and the context \(x\).
-4. **Goal**: The agent learns a policy $` \( \pi(x) \) `$ to choose actions that maximize expected rewards over time.
+4. **Goal**: The agent learns a policy $$ \( \pi(x) \) $$ to choose actions that maximize expected rewards over time.
 
 ---
 
