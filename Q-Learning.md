@@ -74,13 +74,13 @@ Imagine a 3x3 grid world where:
 1. The agent is at **(0, 0)**.
 2. Randomly picks **RIGHT** (exploration).
 3. Moves to **(0, 1)** and receives reward \( R = 0 \).
-4. Updates \( Q[0,0,RIGHT] \) using the formula:
+4. Updates $$\( Q[0,0,RIGHT] \)$$ using the formula:
    
 $$ Q[0,0,RIGHT] = 0 + 0.1 \times \left[ 0 + 0.9 \times \max Q[0,1] - 0 \right] $$
 
 ### Second Action
 1. At **(0, 1)**, the agent chooses another action (e.g., DOWN).
-2. Moves to **(1, 1)**, receives \( R = 0 \), and updates \( Q[0,1,DOWN] \).
+2. Moves to **(1, 1)**, receives $$\( R = 0 \)$$, and updates $$\( Q[0,1,DOWN] \)$$.
 
 ---
 
