@@ -44,10 +44,10 @@ Here’s a step-by-step explanation with an example to make it simple:
    $$
    Q[s, a] = Q[s, a] + \alpha \left[ R + \gamma \max Q[s', a'] - Q[s, a] \right]
    $$
-   - \( \alpha \): Learning rate (how much to update).  
-   - \( \gamma \): Discount factor (importance of future rewards).  
-   - \( R \): Reward for the current action.  
-   - \( \max Q[s', a'] \): Best future reward from the next state.
+   - $$\( \alpha \)$$: Learning rate (how much to update).  
+   - $$\( \gamma \)$$: Discount factor (importance of future rewards).  
+   - $$\( R \)$$: Reward for the current action.  
+   - $$\( \max Q[s', a'] \)$$: Best future reward from the next state.
 
 5. **Repeat**:  
    Keep exploring and updating until the Q-values converge or the task is complete.
