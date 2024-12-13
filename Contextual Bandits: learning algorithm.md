@@ -33,6 +33,8 @@ Contextual Bandits are a type of reinforcement learning problem where an agent c
    r_t = x_t^T \theta_a + \epsilon
    ```
 
+   where
+
    - $`x_t`$: Context vector.
    - $`\theta_a`$: Coefficients (weights) for action $`a`$ that need to be learned.
    - $`\epsilon`$: Noise.
@@ -49,6 +51,8 @@ Contextual Bandits are a type of reinforcement learning problem where an agent c
      ```math
      a_t = \arg\max_a \left( \hat{r}_a + \sqrt{\frac{\beta}{n_a}} \right)
      ```
+
+     where
 
      - $`\hat{r}_a`$: Estimated reward for action $`a`$.
      - $`n_a`$: Number of times action $`a`$ has been tried.
@@ -78,6 +82,7 @@ Here’s a simplified pseudocode for a basic Contextual Bandit algorithm:
         ```math
         a_t = \arg\max_a (x_t^T \theta_a)
         ```
+        
         (exploitation).
    3. **Receive reward**: $`r_t`$ after taking action $`a_t`$.
    4. **Update model**:
