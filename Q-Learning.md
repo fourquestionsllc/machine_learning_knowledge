@@ -40,9 +40,10 @@ Here’s a step-by-step explanation with an example to make it simple:
 
 4. **Update the Q-Value**:  
    Use the **Q-learning formula** to update the Q-value:
-   \[
+   
+   $$
    Q[s, a] = Q[s, a] + \alpha \left[ R + \gamma \max Q[s', a'] - Q[s, a] \right]
-   \]
+   $$
    - \( \alpha \): Learning rate (how much to update).  
    - \( \gamma \): Discount factor (importance of future rewards).  
    - \( R \): Reward for the current action.  
