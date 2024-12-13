@@ -18,9 +18,7 @@ $$ Q(s, a) \leftarrow Q(s, a) + \alpha [r + \gamma \max_{a'} Q(s', a') - Q(s, a)
 #### **3. SARSA Algorithm**
 SARSA (State-Action-Reward-State-Action) is another model-free RL algorithm. Unlike Q-Learning, SARSA updates the Q-value based on the actual action taken in the next state:
 
-\[
-Q(s, a) \leftarrow Q(s, a) + \alpha [r + \gamma Q(s', a') - Q(s, a)]
-\]
+$$Q(s, a) \leftarrow Q(s, a) + \alpha [r + \gamma Q(s', a') - Q(s, a)]$$
 
 - SARSA is on-policy, meaning it considers the policy used to generate actions during training.
 - Q-Learning is off-policy, meaning it optimizes a target policy independent of the policy used to generate actions.
