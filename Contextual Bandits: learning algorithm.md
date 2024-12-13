@@ -1,4 +1,3 @@
-```markdown
 # Contextual Bandits: How It Works
 
 Contextual Bandits are a type of reinforcement learning problem where an agent chooses actions (arms of a bandit) based on **context** (additional information about the environment) to maximize rewards over time.
