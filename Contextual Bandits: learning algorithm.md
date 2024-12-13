@@ -29,9 +29,7 @@ Contextual Bandits are a type of reinforcement learning problem where an agent c
 ### 1. Linear Models (Simplest Case)
    Assume that the reward $`r_t`$ is a linear function of the context for each action:
 
-   ```math
-   r_t = x_t^T \theta_a + \epsilon
-   ```
+   $`r_t = x_t^T \theta_a + \epsilon`$
 
    where
 
@@ -48,9 +46,7 @@ Contextual Bandits are a type of reinforcement learning problem where an agent c
    - **Epsilon-Greedy**: Randomly explore with probability $`\epsilon`$, otherwise exploit the best action.
    - **Upper Confidence Bound (UCB)**: Choose actions that maximize the estimated reward plus an exploration bonus:
 
-     ```math
-     a_t = \arg\max_a \left( \hat{r}_a + \sqrt{\frac{\beta}{n_a}} \right)
-     ```
+     $`a_t = \arg\max_a \left( \hat{r}_a + \sqrt{\frac{\beta}{n_a}} \right)`$
 
      where
 
@@ -79,9 +75,7 @@ Here’s a simplified pseudocode for a basic Contextual Bandit algorithm:
    2. **Select action**:
       - With probability $`\epsilon`$, choose a random action (exploration).
       - Otherwise, choose:
-        ```math
-        a_t = \arg\max_a (x_t^T \theta_a)
-        ```
+        $`a_t = \arg\max_a (x_t^T \theta_a)`$
         
         (exploitation).
    3. **Receive reward**: $`r_t`$ after taking action $`a_t`$.
