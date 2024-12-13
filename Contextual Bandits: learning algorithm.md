@@ -29,9 +29,9 @@ Contextual Bandits are a type of reinforcement learning problem where an agent c
 ### 1. Linear Models (Simplest Case)
    Assume that the reward $`r_t`$ is a linear function of the context for each action:
 
-   ```math
+   $$
    r_t = x_t^T \theta_a + \epsilon
-   ```
+   $$
 
    - $`x_t`$: Context vector.
    - $`\theta_a`$: Coefficients (weights) for action $`a`$ that need to be learned.
