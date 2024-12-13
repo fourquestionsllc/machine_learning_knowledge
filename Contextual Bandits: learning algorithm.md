@@ -29,9 +29,9 @@ Contextual Bandits are a type of reinforcement learning problem where an agent c
 ### 1. Linear Models (Simplest Case)
    Assume that the reward $`r_t`$ is a linear function of the context for each action:
 
-   $$
+   ```math
    r_t = x_t^T \theta_a + \epsilon
-   $$
+   ```
 
    - $`x_t`$: Context vector.
    - $`\theta_a`$: Coefficients (weights) for action $`a`$ that need to be learned.
@@ -46,9 +46,9 @@ Contextual Bandits are a type of reinforcement learning problem where an agent c
    - **Epsilon-Greedy**: Randomly explore with probability $`\epsilon`$, otherwise exploit the best action.
    - **Upper Confidence Bound (UCB)**: Choose actions that maximize the estimated reward plus an exploration bonus:
 
-     $$
+     ```math
      a_t = \arg\max_a \left( \hat{r}_a + \sqrt{\frac{\beta}{n_a}} \right)
-     $$
+     ```
 
      - $`\hat{r}_a`$: Estimated reward for action $`a`$.
      - $`n_a`$: Number of times action $`a`$ has been tried.
@@ -75,10 +75,9 @@ Here’s a simplified pseudocode for a basic Contextual Bandit algorithm:
    2. **Select action**:
       - With probability $`\epsilon`$, choose a random action (exploration).
       - Otherwise, choose:
-        
-        $$
+        ```math
         a_t = \arg\max_a (x_t^T \theta_a)
-        $$
+        ```
         (exploitation).
    3. **Receive reward**: $`r_t`$ after taking action $`a_t`$.
    4. **Update model**:
@@ -110,3 +109,4 @@ Here’s a simplified pseudocode for a basic Contextual Bandit algorithm:
 ## Practical Example
 
 In practice, algorithms like LinUCB (Linear Upper Confidence Bound) or neural network-based models are used for real-world problems like ad recommendation systems.
+
