@@ -99,8 +99,8 @@ for step in range(max_steps_per_episode):
    - Derived from the Q-table by always selecting the action with the highest Q-value for a state (`np.argmax(Q_table[state, :])`).
 
 4. **Q-value Update:**
-   - $`\( Q(s, a) \leftarrow Q(s, a) + \alpha \big( r + \gamma \max_{a'} Q(s', a') - Q(s, a) \big) \)`$
-   - $`\(\alpha\)`$: learning rate, \(\gamma\): discount factor, \(r\): reward.
+   - $`Q(s, a) \leftarrow Q(s, a) + \alpha \big( r + \gamma \max_{a'} Q(s', a') - Q(s, a) \big)`$
+   - $`\alpha`$: learning rate, \(\gamma\): discount factor, \(r\): reward.
 
 5. **State Transition:**
    - The agent transitions to the next state after taking an action (`next_state, reward, done, _, _ = env.step(action)`).
