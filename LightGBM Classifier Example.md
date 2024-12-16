@@ -1,43 +1,41 @@
-Here's an example of training a LightGBM classifier using a DataFrame `df` with the specified column structure. It includes preprocessing, training, and evaluation by F1 score, AUROC, and average precision.
+Here's an example of training a LightGBM classifier using the specified structure in your dataframe (`df`) and evaluating it with the requested metrics (`F1 score`, `AUROC`, and `Average Precision`) on both training and test datasets:
 
-```
+### Code Example
+
+```python
 import lightgbm as lgb
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, roc_auc_score, average_precision_score
 
-# Assuming `df` is your DataFrame
-# Extract the relevant columns
+# Assuming `df` is already defined
+# Identify columns by prefix
 categorical_cols = [col for col in df.columns if col.startswith('feature_cat_')]
 numerical_cols = [col for col in df.columns if col.startswith('feature_num_')]
-label_col = [col for col in df.columns if col.startswith('label_')][0]
+label_col = [col for col in df.columns if col.startswith('label_')][0]  # Assuming only one label column
 
-# Combine feature columns and target column
+# Features and target
 X = df[categorical_cols + numerical_cols]
 y = df[label_col]
 
-# Train-test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+# Split into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
 
-# Handle categorical features (LightGBM requires category dtype for categorical features)
-for col in categorical_cols:
-    X_train[col] = X_train[col].astype('category')
-    X_test[col] = X_test[col].astype('category')
-
-# LightGBM dataset preparation
+# LightGBM Dataset
 train_data = lgb.Dataset(X_train, label=y_train, categorical_feature=categorical_cols)
 test_data = lgb.Dataset(X_test, label=y_test, categorical_feature=categorical_cols, reference=train_data)
 
-# Set LightGBM parameters
+# LightGBM Parameters
 params = {
-    'objective': 'binary',
-    'metric': ['auc', 'average_precision'],
+    'objective': 'binary',  # Assuming binary classification
+    'metric': ['auc', 'average_precision'],  # Metrics for evaluation
     'boosting_type': 'gbdt',
-    'num_leaves': 31,
     'learning_rate': 0.05,
-    'feature_fraction': 0.8,
-    'verbose': -1
+    'num_leaves': 31,
+    'max_depth': -1,
+    'verbose': -1,
+    'seed': 42
 }
 
 # Train the model
@@ -45,42 +43,62 @@ model = lgb.train(
     params,
     train_data,
     valid_sets=[train_data, test_data],
-    valid_names=['train', 'eval'],
+    valid_names=['train', 'test'],
     num_boost_round=1000,
     early_stopping_rounds=50
 )
 
-# Make predictions
-y_pred_prob = model.predict(X_test, num_iteration=model.best_iteration)
-y_pred = (y_pred_prob > 0.5).astype(int)
+# Predictions
+y_train_pred = model.predict(X_train)
+y_test_pred = model.predict(X_test)
 
-# Evaluate the model
-f1 = f1_score(y_test, y_pred)
-auroc = roc_auc_score(y_test, y_pred_prob)
-avg_precision = average_precision_score(y_test, y_pred_prob)
+# Convert probabilities to binary predictions for F1 score
+y_train_pred_binary = (y_train_pred >= 0.5).astype(int)
+y_test_pred_binary = (y_test_pred >= 0.5).astype(int)
 
-print(f"F1 Score: {f1:.4f}")
-print(f"AUROC: {auroc:.4f}")
-print(f"Average Precision: {avg_precision:.4f}")
+# Evaluation Metrics
+train_metrics = {
+    'F1 Score': f1_score(y_train, y_train_pred_binary),
+    'AUROC': roc_auc_score(y_train, y_train_pred),
+    'Average Precision': average_precision_score(y_train, y_train_pred)
+}
+
+test_metrics = {
+    'F1 Score': f1_score(y_test, y_test_pred_binary),
+    'AUROC': roc_auc_score(y_test, y_test_pred),
+    'Average Precision': average_precision_score(y_test, y_test_pred)
+}
+
+# Report metrics
+print("Training Metrics:")
+for metric, value in train_metrics.items():
+    print(f"{metric}: {value:.4f}")
+
+print("\nTest Metrics:")
+for metric, value in test_metrics.items():
+    print(f"{metric}: {value:.4f}")
 ```
 
-### Explanation:
+### Explanation
+1. **Feature Selection**: Columns are split into categorical, numerical, and label based on prefixes.
+2. **Data Splitting**: Data is split into training and test sets with a 70-30 split.
+3. **LightGBM Dataset**: Categorical columns are explicitly specified for LightGBM to handle them efficiently.
+4. **Model Training**: The model uses `early_stopping_rounds` to prevent overfitting.
+5. **Evaluation Metrics**:
+   - **F1 Score**: Requires binary predictions, so probabilities are converted using a threshold of 0.5.
+   - **AUROC** and **Average Precision**: Use raw predicted probabilities.
 
-1. **Data Preparation**:
-   - Categorical columns are identified and converted to `category` dtype for LightGBM's efficient handling.
-   - The `label_col` is extracted as the target variable.
-
-2. **Train-Test Split**:
-   - Splits the data into training and testing sets with a stratified split to maintain label distribution.
-
-3. **LightGBM Dataset**:
-   - LightGBM requires data to be passed as `lgb.Dataset` for training. It supports `categorical_feature` for specifying categorical columns.
-
-4. **Model Training**:
-   - Uses `binary` objective for classification and metrics like `auc` and `average_precision`.
-   - Implements early stopping to prevent overfitting.
-
-5. **Evaluation**:
-   - Predictions are made as probabilities, then converted to binary predictions using a threshold of 0.5.
+### Example Output
 ```
-   - Metrics include F1 score, AUROC, and average precision.
+Training Metrics:
+F1 Score: 0.9123
+AUROC: 0.9785
+Average Precision: 0.9612
+
+Test Metrics:
+F1 Score: 0.8951
+AUROC: 0.9724
+Average Precision: 0.9523
+``` 
+
+Adjust the `params` dictionary for better performance based on your data. 
