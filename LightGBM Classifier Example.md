@@ -1,5 +1,6 @@
 Here's an example of training a LightGBM classifier using a DataFrame `df` with the specified column structure. It includes preprocessing, training, and evaluation by F1 score, AUROC, and average precision.
 
+```
 import lightgbm as lgb
 import pandas as pd
 import numpy as np
