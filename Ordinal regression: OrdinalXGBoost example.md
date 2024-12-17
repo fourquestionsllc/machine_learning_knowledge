@@ -1,145 +1,146 @@
-Here's the Python program to train an **OrdinalXGBoost** model for the ordinal regression problem you described, followed by an explanation of the process, the loss function, and performance metrics commonly used for ordinal regression.
+### Python Program for Ordinal Regression with `OrdinalXGBoost`
 
----
+Here's the complete code for using `OrdinalXGBoost` to train a model that accounts for missing values, categorical and numerical features, and the imbalanced nature of the labels.
 
-### Python Code
+#### Python Code
 ```python
 import pandas as pd
 import numpy as np
 from ordinal_xgboost import OrdinalXGBClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, mean_absolute_error, cohen_kappa_score
+from sklearn.metrics import mean_absolute_error, cohen_kappa_score, confusion_matrix
 
-# Load the dataframe
-# Assuming `df` is your pandas DataFrame
-# Example: df = pd.read_csv('your_dataset.csv')
+# Sample data frame (replace with your actual data)
+data = pd.read_csv("your_data.csv")
 
-# Split features and label
-categorical_columns = [col for col in df.columns if col.startswith('feature_cat__')]
-numerical_columns = [col for col in df.columns if col.startswith('feature_num__')]
-feature_columns = categorical_columns + numerical_columns
-label_column = [col for col in df.columns if col.startswith('label__')][0]
+# Separate features and label
+features = data.filter(regex="feature_.*")  # Select columns with prefix `feature_`
+label = data.filter(regex="label__").squeeze()  # Select the label column
 
-X = df[feature_columns]
-y = df[label_column]
+# Split categorical and numerical features
+categorical_features = features.filter(regex="feature_cat__").columns.tolist()
+numerical_features = features.filter(regex="feature_num__").columns.tolist()
 
-# Handle missing values in features
-# OrdinalXGBoost handles NaNs, so no need for imputation
-# However, you may optionally fill with median/mode as a preprocessing step
+# Handle missing values in categorical features by replacing NaN with a placeholder
+features[categorical_features] = features[categorical_features].fillna("missing")
 
-# Split data into train and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(features, label, test_size=0.2, stratify=label, random_state=42)
 
-# Initialize and train OrdinalXGBoost classifier
+# Define sample weights to address label imbalance
+class_weights = {0: 1.0, 1: 80 / 14, 2: 80 / 6}  # Adjust weights inversely proportional to class frequency
+sample_weights = y_train.map(class_weights)
+
+# Train the Ordinal XGBoost model
 model = OrdinalXGBClassifier(
-    num_classes=3,  # Number of ordinal levels (0, 1, 2)
-    objective="binary:logistic",  # Ordinal regression internally uses multiple binary logistic tasks
-    booster="gbtree",
-    eval_metric="mlogloss",  # Evaluates the log loss for multi-class problems
-    use_label_encoder=False,
-    missing=np.nan  # Indicates missing values
+    random_state=42,
+    n_estimators=200,
+    learning_rate=0.1,
+    max_depth=6,
+    min_child_weight=2,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    importance_type="weight"
 )
 
-# Fit the model
-model.fit(X_train, y_train)
+# Fit the model with sample weights
+model.fit(X_train, y_train, sample_weight=sample_weights)
 
-# Make predictions
+# Predict on the test set
 y_pred = model.predict(X_test)
 
 # Evaluate the model
-accuracy = accuracy_score(y_test, y_pred)
 mae = mean_absolute_error(y_test, y_pred)
 kappa = cohen_kappa_score(y_test, y_pred, weights="quadratic")
+conf_matrix = confusion_matrix(y_test, y_pred)
 
-print(f"Accuracy: {accuracy:.4f}")
-print(f"Mean Absolute Error (MAE): {mae:.4f}")
-print(f"Cohen's Kappa Score: {kappa:.4f}")
+# Print results
+print("Mean Absolute Error (MAE):", mae)
+print("Quadratic Weighted Kappa (QWK):", kappa)
+print("Confusion Matrix:\n", conf_matrix)
 ```
 
 ---
 
 ### Explanation of the Code
 
-1. **Feature Selection**:
-   - Extract categorical features (prefixed with `feature_cat__`) and numerical features (`feature_num__`).
-   - Combine them to form the feature matrix `X`.
+#### 1. **Handling Missing Values**
+- **Categorical Features**: Missing values are replaced with a placeholder `"missing"`. This ensures that the `OrdinalXGBClassifier` treats missing categorical values as a unique category.
+- **Numerical Features**: Missing numerical values are handled natively by `OrdinalXGBClassifier`.
 
-2. **Handling Missing Values**:
-   - OrdinalXGBoost handles missing values (`NaN`) natively by deciding the best split for missing values during training.
-   - No imputation is necessary, but you can optionally preprocess the data for better control.
+#### 2. **Imbalanced Classes**
+- Classes are imbalanced (80% for level 0, 6% for level 2). To handle this, we assign **sample weights** inversely proportional to class frequencies using:
+  ```python
+  class_weights = {0: 1.0, 1: 80 / 14, 2: 80 / 6}
+  ```
+- These weights are passed to the `fit` method via the `sample_weight` parameter.
 
-3. **Class Imbalance**:
-   - Class imbalance (80% for level 0, 6% for level 2) can be addressed by:
-     - Adding `scale_pos_weight` in the parameters to balance positive and negative samples.
-     - Using stratified splits to preserve class distribution during training and testing.
+#### 3. **Model Training**
+- `OrdinalXGBClassifier` from the `ordinal-xgboost` library is used. It handles the ordinal nature of the target by using specialized loss functions (explained below).
 
-4. **Model Training**:
-   - `OrdinalXGBClassifier` models the ordinal nature of the problem by internally building a sequence of binary classification tasks.
-   - Specify the number of classes (`num_classes=3`) corresponding to the labels `0`, `1`, `2`.
-
-5. **Performance Metrics**:
-   - **Accuracy**: Measures the percentage of correct predictions but doesn’t account for ordinal nature.
-   - **Mean Absolute Error (MAE)**: Penalizes predictions more when they are farther from the true rank.
-   - **Cohen's Kappa (Quadratic Weighted)**: Accounts for the agreement between predicted and true labels while considering the ordinal relationship.
+#### 4. **Evaluation Metrics**
+- **Mean Absolute Error (MAE)**: Measures the average absolute difference between predicted and true levels. Lower MAE indicates better performance.
+- **Quadratic Weighted Kappa (QWK)**: Measures the agreement between predictions and true labels, with more weight given to larger disagreements.
+- **Confusion Matrix**: Summarizes the distribution of predicted vs. actual levels.
 
 ---
 
-### Loss Function in OrdinalXGBoost
+### Loss Function in Ordinal Regression
 
-OrdinalXGBoost uses a combination of binary logistic loss and ordering constraints to enforce the ordinal nature. Here's how it works:
+Ordinal regression in `OrdinalXGBoost` relies on **Cumulative Logit** or **Cumulative Probit Models**, where the loss function is designed to preserve the order in the labels.
 
-1. The problem is broken into multiple binary classification tasks:
-   - \( P(y \geq 1) \), \( P(y \geq 2) \), ..., \( P(y \geq k) \), where \( k \) is the maximum rank.
-2. Each binary task is trained using **binary logistic loss**:
-   \[
-   \text{LogLoss} = -\frac{1}{n} \sum_i \Big( y_i \log(p_i) + (1 - y_i) \log(1 - p_i) \Big)
-   \]
-3. Constraints ensure that the probabilities \( P(y \geq k) \) are monotonically decreasing:
-   \[
-   P(y \geq 1) \geq P(y \geq 2) \geq \ldots \geq P(y \geq k)
-   \]
+#### Mechanism:
+1. **Threshold Model**:
+   - The model predicts probabilities for each ordinal category using cumulative probabilities:
+     \[
+     P(y \leq k) = \sigma(f(x) - b_k)
+     \]
+     where:
+     - \( \sigma \): Sigmoid function.
+     - \( f(x) \): Model's raw score.
+     - \( b_k \): Threshold for category \( k \).
+
+2. **Likelihood-based Loss**:
+   - The model minimizes the negative log-likelihood:
+     \[
+     L = -\sum \log(P(y = k))
+     \]
+   - Ensures that the probability distribution over the ordinal classes respects the ordering.
+
+3. **Order Constraint**:
+   - During optimization, the thresholds \( b_k \) are constrained to ensure \( b_1 \leq b_2 \leq \dots \leq b_K \).
 
 ---
 
 ### Popular Performance Metrics for Ordinal Regression
 
-1. **Accuracy**:
-   - Measures the proportion of correct predictions but doesn’t respect the ordinal relationship.
+1. **Mean Absolute Error (MAE)**:
+   - Measures the average absolute error between the predicted and true levels.
+   - Formula:
+     \[
+     MAE = \frac{1}{n} \sum_{i=1}^n |y_i - \hat{y}_i|
+     \]
+   - Lower MAE indicates better performance.
 
-2. **Mean Absolute Error (MAE)**:
-   - Captures the average absolute difference between predicted and actual ranks.
-   - Smaller MAE values indicate better ordinal predictions.
-   \[
-   \text{MAE} = \frac{1}{n} \sum_{i=1}^n |y_i - \hat{y}_i|
-   \]
+2. **Quadratic Weighted Kappa (QWK)**:
+   - Captures agreement between predicted and actual labels, emphasizing the ordinal nature of the target.
+   - Formula:
+     \[
+     QWK = 1 - \frac{\sum_{i,j} W_{i,j} O_{i,j}}{\sum_{i,j} W_{i,j} E_{i,j}}
+     \]
+     where:
+     - \( O_{i,j} \): Observed matrix.
+     - \( E_{i,j} \): Expected matrix (based on marginal distributions).
+     - \( W_{i,j} \): Weight matrix (quadratic).
 
-3. **Cohen's Kappa (Weighted)**:
-   - Measures agreement between predicted and true labels, adjusted for chance.
-   - The quadratic weighting penalizes larger errors more heavily.
-   \[
-   \kappa = \frac{p_o - p_e}{1 - p_e}
-   \]
-   - \( p_o \): Observed agreement.
-   - \( p_e \): Agreement expected by chance.
-
-4. **Spearman’s Rank Correlation**:
-   - Measures the correlation between predicted and actual ranks:
-   \[
-   \rho = 1 - \frac{6 \sum d_i^2}{n(n^2 - 1)}
-   \]
-   - \( d_i \): Difference between ranks.
-
-5. **Confusion Matrix with Ordinal Metrics**:
-   - Helps visualize misclassification and errors across ordinal levels.
+3. **Confusion Matrix**:
+   - Helps visualize the distribution of true vs. predicted levels.
+   - Especially useful for ordinal regression to assess how often the model predicts neighboring classes.
 
 ---
 
-### Example Metrics Output
-Assume the model performs reasonably well:
-```
-Accuracy: 0.75
-Mean Absolute Error (MAE): 0.30
-Cohen's Kappa Score: 0.68
-```
+### Final Notes
 
-These metrics suggest the model predicts well, with low MAE and strong agreement between predicted and true labels.
+- **Handling Imbalance**: Using sample weights improves predictions for minority classes (levels 1 and 2).
+- **Loss Function**: The cumulative logit/probit model ensures the output respects ordinal constraints.
+- **Evaluation Metrics**: Use MAE and QWK to evaluate ordinal models, with QWK being particularly insightful for imbalanced and ordered targets.
