@@ -1,180 +1,164 @@
-Setting up a PostgreSQL Docker instance and performing CRUD operations via Python involves a few steps. Below, I'll guide you through the process of setting up PostgreSQL in Docker, connecting to it using Python, and performing CRUD operations with SQL queries.
+### Setting Up PostgreSQL Docker Instance with Mapped Directory
 
-### Step 1: Set Up PostgreSQL Docker Container
+#### Step 1: Pull the PostgreSQL Docker Image
+Run the following command to pull the PostgreSQL Docker image:
+```bash
+docker pull postgres
+```
 
-To start a PostgreSQL instance in Docker, use the following steps:
+#### Step 2: Create a Local Directory for Data Storage
+Create a directory on your local system where the PostgreSQL data will be stored:
+```bash
+mkdir -p ~/postgres-data
+```
 
-1. **Pull the PostgreSQL Docker Image** (if you haven't already):
-   ```bash
-   docker pull postgres
-   ```
+#### Step 3: Run PostgreSQL Docker Container
+Run the PostgreSQL Docker container, mapping the local directory (`~/postgres-data`) to the container's data directory (`/var/lib/postgresql/data`):
+```bash
+docker run --name postgres-container -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin -e POSTGRES_DB=testdb -v ~/postgres-data:/var/lib/postgresql/data -p 5432:5432 -d postgres
+```
 
-2. **Run the PostgreSQL container**:
-   You can run a PostgreSQL instance using Docker with the following command:
-   ```bash
-   docker run --name my_postgres -e POSTGRES_PASSWORD=mysecretpassword -d postgres
-   ```
+This command:
+- Names the container `postgres-container`.
+- Sets the PostgreSQL username to `admin`, password to `admin`, and database name to `testdb`.
+- Maps the local directory `~/postgres-data` to the PostgreSQL data directory inside the container.
+- Exposes PostgreSQL on port `5432`.
 
-   - `--name my_postgres`: Name of the container.
-   - `-e POSTGRES_PASSWORD=mysecretpassword`: Set the password for the `postgres` user.
-   - `-d`: Run the container in detached mode.
-   - `postgres`: Use the official PostgreSQL image.
+---
 
-3. **Verify the container is running**:
-   ```bash
-   docker ps
-   ```
+### Querying PostgreSQL with Python
 
-4. **Access PostgreSQL**:
-   You can access the running PostgreSQL instance using `psql` inside the container or connect remotely via Python.
-   To access it via `psql`, run:
-   ```bash
-   docker exec -it my_postgres psql -U postgres
-   ```
-
-   This will open the PostgreSQL prompt.
-
-### Step 2: Install Required Python Libraries
-
-Make sure you have the necessary libraries installed in Python to connect to PostgreSQL:
-
+#### Step 1: Install Required Library
+Install `psycopg2` for Python to interact with PostgreSQL:
 ```bash
 pip install psycopg2
 ```
 
-`psycopg2` is the library that allows Python to interact with PostgreSQL.
-
-### Step 3: Python Code for CRUD Operations
-
-Here is the Python code that connects to your PostgreSQL instance in Docker and performs CRUD (Create, Read, Update, Delete) operations.
+#### Step 2: Python Code for CRUD Operations
+Below is the Python script to perform CRUD operations:
 
 ```python
 import psycopg2
-from psycopg2 import sql
 
-# Database connection details
-DB_HOST = "localhost"  # If you are running PostgreSQL in Docker
-DB_PORT = "5432"       # Default PostgreSQL port
-DB_NAME = "postgres"   # Default database name
-DB_USER = "postgres"   # Default PostgreSQL user
-DB_PASSWORD = "mysecretpassword"  # The password you set in the Docker command
+# Database connection settings
+DB_HOST = 'localhost'
+DB_PORT = '5432'
+DB_NAME = 'testdb'
+DB_USER = 'admin'
+DB_PASSWORD = 'admin'
 
-# Establish a connection to the database
-conn = psycopg2.connect(
-    dbname=DB_NAME,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    port=DB_PORT
-)
+# Connect to PostgreSQL
+def connect_to_db():
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD
+        )
+        print("Connection successful")
+        return conn
+    except Exception as e:
+        print(f"Error connecting to database: {e}")
+        return None
 
-# Create a cursor to execute SQL queries
-cursor = conn.cursor()
+# Create table
+def create_table(conn):
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS employees (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(100),
+                    age INT,
+                    department VARCHAR(50)
+                );
+            """)
+            conn.commit()
+            print("Table created successfully")
+    except Exception as e:
+        print(f"Error creating table: {e}")
 
-# 1. Create Table
-def create_table():
-    query = """
-    CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100),
-        age INT
-    );
-    """
-    cursor.execute(query)
-    conn.commit()
-    print("Table created successfully.")
+# Insert data
+def insert_data(conn, name, age, department):
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO employees (name, age, department)
+                VALUES (%s, %s, %s)
+                RETURNING id;
+            """, (name, age, department))
+            new_id = cur.fetchone()[0]
+            conn.commit()
+            print(f"Inserted data with ID: {new_id}")
+    except Exception as e:
+        print(f"Error inserting data: {e}")
 
-# 2. Insert Data (Create)
-def insert_user(name, age):
-    query = """
-    INSERT INTO users (name, age) VALUES (%s, %s);
-    """
-    cursor.execute(query, (name, age))
-    conn.commit()
-    print(f"User {name} inserted successfully.")
+# Read data
+def read_data(conn):
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM employees;")
+            rows = cur.fetchall()
+            for row in rows:
+                print(row)
+    except Exception as e:
+        print(f"Error reading data: {e}")
 
-# 3. Read Data (Read)
-def get_all_users():
-    query = "SELECT * FROM users;"
-    cursor.execute(query)
-    users = cursor.fetchall()
-    for user in users:
-        print(f"ID: {user[0]}, Name: {user[1]}, Age: {user[2]}")
+# Update data
+def update_data(conn, employee_id, new_department):
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE employees
+                SET department = %s
+                WHERE id = %s;
+            """, (new_department, employee_id))
+            conn.commit()
+            print(f"Updated data for ID: {employee_id}")
+    except Exception as e:
+        print(f"Error updating data: {e}")
 
-# 4. Update Data
-def update_user(id, new_name, new_age):
-    query = """
-    UPDATE users
-    SET name = %s, age = %s
-    WHERE id = %s;
-    """
-    cursor.execute(query, (new_name, new_age, id))
-    conn.commit()
-    print(f"User with ID {id} updated successfully.")
+# Delete data
+def delete_data(conn, employee_id):
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                DELETE FROM employees
+                WHERE id = %s;
+            """, (employee_id,))
+            conn.commit()
+            print(f"Deleted data for ID: {employee_id}")
+    except Exception as e:
+        print(f"Error deleting data: {e}")
 
-# 5. Delete Data
-def delete_user(id):
-    query = """
-    DELETE FROM users WHERE id = %s;
-    """
-    cursor.execute(query, (id,))
-    conn.commit()
-    print(f"User with ID {id} deleted successfully.")
-
-# Main program execution
+# Main function
 if __name__ == "__main__":
-    # Create table (only need to run once)
-    create_table()
-    
-    # Insert users
-    insert_user("Alice", 30)
-    insert_user("Bob", 25)
-    
-    # Get and display all users
-    print("All users:")
-    get_all_users()
-    
-    # Update a user's data
-    update_user(1, "Alice Cooper", 31)
-    
-    # Get and display all users after update
-    print("All users after update:")
-    get_all_users()
-    
-    # Delete a user
-    delete_user(2)
-    
-    # Get and display all users after deletion
-    print("All users after deletion:")
-    get_all_users()
-
-    # Close the cursor and connection
-    cursor.close()
-    conn.close()
+    conn = connect_to_db()
+    if conn:
+        create_table(conn)
+        insert_data(conn, "Alice", 30, "HR")
+        insert_data(conn, "Bob", 25, "Engineering")
+        print("Initial data:")
+        read_data(conn)
+        update_data(conn, 1, "Finance")
+        print("After update:")
+        read_data(conn)
+        delete_data(conn, 2)
+        print("After delete:")
+        read_data(conn)
+        conn.close()
 ```
 
-### Explanation of the Code:
+---
 
-1. **Connect to PostgreSQL**: We use `psycopg2.connect()` to connect to the database.
+### Explanation of the Code
+1. **Connect to Database**: Establishes a connection to the PostgreSQL database using `psycopg2`.
 2. **CRUD Operations**:
-   - **Create**: `insert_user()` inserts data into the `users` table.
-   - **Read**: `get_all_users()` retrieves all users from the `users` table.
-   - **Update**: `update_user()` updates a user's name and age.
-   - **Delete**: `delete_user()` deletes a user by their `id`.
-3. **Commit Changes**: After each SQL operation (`INSERT`, `UPDATE`, `DELETE`), we call `conn.commit()` to save changes to the database.
-4. **Close Connections**: Always close the cursor and connection after you're done with them.
-
-### Step 4: Run the Python Code
-
-Simply run the Python script:
-```bash
-python your_script_name.py
-```
-
-This script will interact with the PostgreSQL database running in Docker, create a table, insert records, update records, and delete records.
-
-### Troubleshooting:
-- **Connection Issues**: If the connection to Docker is unsuccessful, check that the Docker container is running and accessible at `localhost:5432`.
-- **Firewall/Port Mapping**: If you're running Docker on a remote machine, ensure that the PostgreSQL port (`5432`) is properly exposed and mapped.
-
-That's it! You've now set up PostgreSQL in Docker, connected to it using Python, and performed basic CRUD operations.
+   - **Create Table**: Creates a table named `employees` if it doesn't already exist.
+   - **Insert Data**: Inserts employee records into the table.
+   - **Read Data**: Fetches all records from the `employees` table.
+   - **Update Data**: Updates a specific record's department field.
+   - **Delete Data**: Deletes a specific record based on its ID.
+3. **Execution Order**: Demonstrates the CRUD operations sequentially.
