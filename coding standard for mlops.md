@@ -1,267 +1,235 @@
-# Coding Standards for MLOps and AIOps Pipelines
+# **Coding Standards for MLOps and AIOps Model Development and Deployment**
 
-## **1. Overview**
-This document outlines the coding standards and best practices for structuring, developing, and managing code, configuration files, and repositories in the context of MLOps and AIOps pipelines. It aims to ensure consistency, maintainability, scalability, and ease of collaboration for machine learning (ML) and artificial intelligence (AI) model development and deployment.
-
----
-
-## **2. Project Structure**
-Follow a modular and intuitive directory structure for the project repository:
-
-```
-root/
-|-- README.md
-|-- setup.py
-|-- requirements.txt
-|-- configs/
-|   |-- config.yaml
-|-- data/
-|   |-- raw/
-|   |-- processed/
-|-- src/
-|   |-- data_processing/
-|   |   |-- __init__.py
-|   |   |-- preprocess.py
-|   |-- model_training/
-|   |   |-- __init__.py
-|   |   |-- train.py
-|   |-- model_inference/
-|   |   |-- __init__.py
-|   |   |-- inference.py
-|-- models/
-|   |-- saved_models/
-|-- logs/
-|   |-- training.log
-|-- tests/
-|   |-- test_preprocessing.py
-|   |-- test_training.py
-|-- docker/
-|   |-- Dockerfile
-|   |-- docker-compose.yaml
-|-- .github/
-|   |-- workflows/
-|       |-- ci-cd.yaml
-|-- scripts/
-|   |-- deploy.sh
-|   |-- monitor.sh
-```
-
-### **Key Directories**
-- **`configs/`**: Contains YAML or JSON configuration files for different environments (e.g., dev, staging, production).
-- **`data/`**: Organized into raw and processed data folders.
-- **`src/`**: Source code divided into submodules for processing, training, and inference.
-- **`models/`**: Stores serialized models and checkpoints.
-- **`logs/`**: Logs generated during training, evaluation, and deployment.
-- **`tests/`**: Unit and integration tests for the pipeline.
-- **`docker/`**: Docker configurations for containerization.
-- **`.github/`**: Contains CI/CD workflows.
-- **`scripts/`**: Shell scripts for deployment and monitoring.
+This document outlines the coding standards for developing and deploying machine learning (ML) and artificial intelligence (AI) models using MLOps and AIOps frameworks. It focuses on best practices for coding structure, `.yaml` files, project repository management, and emphasizes the importance of using variables instead of hardcoding configurations.
 
 ---
 
-## **3. Coding Standards**
+## **1. General Coding Standards**
+### 1.1 Code Structure
+- **Modular Design**: Break down code into smaller, reusable modules for better readability and maintainability.
+  - Separate concerns (e.g., data preprocessing, feature engineering, training, inference).
+  - Place reusable components in a common library folder (e.g., `utils/` or `common/`).
 
-### **3.1 Python Code**
-- **Style Guide**: Follow [PEP 8](https://peps.python.org/pep-0008/) for Python coding style.
+- **Style Guide**: Follow **PEP 8** for Python coding style.
+
 - **Naming Conventions**:
-  - Variables and functions: `snake_case`
-  - Classes: `PascalCase`
-  - Constants: `UPPER_SNAKE_CASE`
+  - **Variables and functions**: Use `snake_case`.
+  - **Classes**: Use `PascalCase`.
+  - **Constants**: Use `UPPER_SNAKE_CASE`.
+  - Example:
+    ```python
+    # Good
+    MAX_ITERATIONS = 100
+    def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
+        pass
+    ```
+
 - **Imports**:
   - Use absolute imports.
   - Group imports into standard library, third-party, and local packages.
-
-```python
-# Example
-import os
-import numpy as np
-from src.data_processing import preprocess
-```
+  - Example:
+    ```python
+    import os
+    import numpy as np
+    from src.data_processing import preprocess
+    ```
 
 - **Type Hints**: Use Python type annotations for functions and methods.
-
-```python
-def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
-    ...
-```
+  - Example:
+    ```python
+    def preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
+        ...
+    ```
 
 - **Documentation**: Use docstrings for all modules, classes, and functions.
+  - Example:
+    ```python
+    """
+    Function to preprocess raw data.
 
-```python
-"""
-Function to preprocess raw data.
+    Args:
+        data (pd.DataFrame): Input raw data.
 
-Args:
-    data (pd.DataFrame): Input raw data.
-
-Returns:
-    pd.DataFrame: Processed data.
-"""
-```
-
-### **3.2 YAML Files**
-- **Naming**: Use descriptive names (e.g., `config.yaml`, `ci-cd.yaml`).
-- **Structure**: Group configurations into logical sections with indentation.
-- **Comments**: Document key-value pairs with comments.
-
-```yaml
-# Sample YAML configuration
-model:
-  type: "xgboost"
-  hyperparameters:
-    learning_rate: 0.01
-    max_depth: 10
-    n_estimators: 100
-
-data:
-  input_path: "data/raw/input.csv"
-  output_path: "data/processed/output.csv"
-
-deployment:
-  docker_image: "mlops_model:latest"
-  replicas: 3
-```
-
-### **3.3 Shell Scripts**
-- **Naming**: Use descriptive names (e.g., `deploy.sh`).
-- **Style**: Follow [ShellCheck](https://www.shellcheck.net/) guidelines.
-- **Comments**: Add comments to describe complex commands.
-
-```bash
-#!/bin/bash
-# Script to deploy the model
-
-echo "Starting deployment..."
-docker-compose up --build -d
-```
+    Returns:
+        pd.DataFrame: Processed data.
+    """
+    ```
 
 ---
 
-## **4. Version Control**
+## **2. Variables and Configuration Management**
+### 2.1 Avoid Hardcoding
+- Use configuration files (`.yaml`, `.json`, `.ini`) or environment variables for all setup values like:
+  - File paths
+  - API keys
+  - Hyperparameters
+  - Cloud credentials
+- **Example**:
+  ```yaml
+  # config.yaml
+  training:
+    batch_size: 64
+    learning_rate: 0.001
+  paths:
+    input_data: "/data/input/"
+    output_model: "/models/"
+  ```
 
-### **4.1 Git Standards**
-- **Branching Strategy**: Follow Git Flow.
-  - `main`: Production-ready code.
-  - `develop`: Latest development code.
-  - `feature/*`: Feature branches.
-  - `hotfix/*`: Quick fixes to production.
+### 2.2 Environment Variables
+- Use `.env` files or a secret manager (e.g., AWS Secrets Manager, Azure Key Vault) to handle sensitive information.
+  - Example `.env`:
+    ```
+    AWS_ACCESS_KEY=your-access-key
+    AWS_SECRET_KEY=your-secret-key
+    ```
 
-- **Commit Messages**: Use descriptive commit messages.
+### 2.3 Accessing Configurations
+- Use libraries like `PyYAML` for parsing `.yaml` files and `python-dotenv` for environment variables.
+  - Example:
+    ```python
+    import os
+    import yaml
 
+    with open("config.yaml", "r") as file:
+        config = yaml.safe_load(file)
+
+    batch_size = config['training']['batch_size']
+    aws_access_key = os.getenv("AWS_ACCESS_KEY")
+    ```
+
+---
+
+## **3. YAML File Standards**
+### 3.1 Structure
+- Organize `.yaml` files by functionality:
+  - **Infrastructure**: Specify cloud resources (e.g., Kubernetes, Docker).
+  - **Pipeline**: Define stages (e.g., data ingestion, training, deployment).
+  - **Hyperparameters**: Include all tunable parameters.
+
+### 3.2 Naming
+- Use descriptive file names:
+  - `pipeline_config.yaml`
+  - `hyperparameters.yaml`
+  - `infrastructure.yaml`
+
+### 3.3 Best Practices
+- Use comments to describe key configurations.
+- Include default values and optional parameters.
+- Example:
+  ```yaml
+  # pipeline_config.yaml
+  stages:
+    - name: data_ingestion
+      script: ingest_data.py
+    - name: training
+      script: train_model.py
+      parameters:
+        epochs: 10
+        optimizer: "adam"
+    - name: deployment
+      script: deploy_model.py
+  ```
+
+---
+
+## **4. Project Repository Standards**
+### 4.1 Directory Structure
+Organize the repository with clear folders:
 ```plaintext
-feat: add preprocessing module
-fix: resolve data loading bug
-refactor: optimize training pipeline
+project-root/
+├── data/
+├── models/
+├── src/
+│   ├── ingestion/
+│   ├── preprocessing/
+│   ├── training/
+│   ├── deployment/
+│   └── utils/
+├── tests/
+├── config/
+│   ├── pipeline_config.yaml
+│   ├── hyperparameters.yaml
+│   └── infrastructure.yaml
+├── scripts/
+├── notebooks/
+├── docker/
+├── requirements.txt
+└── README.md
 ```
 
-### **4.2 Repository Organization**
-- Use a mono-repo for pipelines with interdependencies.
-- Use submodules if required for shared libraries.
+### 4.2 Version Control
+- Use `git` for version control.
+- Maintain a consistent branch naming convention (e.g., `feature/<name>`, `bugfix/<name>`).
+- Write descriptive commit messages.
 
 ---
 
-## **5. Testing**
+## **5. Pipeline Standards**
+### 5.1 Pipeline Automation
+- Use tools like Kubeflow, MLflow, or Airflow for orchestrating pipelines.
+- Ensure pipeline stages are modular and independent.
 
-### **5.1 Unit Tests**
-- Write unit tests for each module in the `tests/` directory.
-- Use `pytest` as the testing framework.
+### 5.2 Logging
+- Use structured logging (e.g., `json` logs) to track progress and debugging.
+- Example:
+  ```python
+  import logging
 
-```bash
-pytest --cov=src
-```
+  logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+  logging.info("Starting model training...")
+  ```
 
-### **5.2 Integration Tests**
-- Test interactions between modules (e.g., preprocessing + model training).
-
-### **5.3 CI/CD Pipeline Testing**
-- Automate tests in the CI/CD pipeline using workflows in `.github/workflows/`.
-
----
-
-## **6. CI/CD Pipeline Standards**
-
-### **6.1 Continuous Integration**
-- Trigger on pull requests to `develop` or `main`.
-- Steps:
-  1. Linting with `flake8`.
-  2. Run tests with `pytest`.
-  3. Check code coverage.
-
-### **6.2 Continuous Deployment**
-- Use tools like GitHub Actions or Jenkins for deployment workflows.
-- Example Workflow:
-
-```yaml
-name: CI/CD Pipeline
-
-on:
-  push:
-    branches:
-      - main
-      - develop
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Run tests
-        run: |
-          pytest --cov=src
-
-      - name: Build Docker image
-        run: |
-          docker build -t mlops_model:latest .
-
-      - name: Push Docker image
-        run: |
-          docker push mlops_model:latest
-```
+### 5.3 Monitoring and Alerts
+- Integrate tools like Prometheus and Grafana to monitor pipelines.
+- Set up alerts for failures or performance degradation.
 
 ---
 
-## **7. Documentation**
-- Maintain a `README.md` with:
-  - Project overview.
-  - Installation steps.
-  - Usage examples.
-- Use docstrings for code documentation.
-- Generate API documentation using tools like `Sphinx`.
+## **6. Model Deployment Standards**
+### 6.1 Containerization
+- Use Docker to containerize the application.
+  - Example `Dockerfile`:
+    ```dockerfile
+    FROM python:3.9
+    WORKDIR /app
+    COPY . .
+    RUN pip install -r requirements.txt
+    CMD ["python", "src/main.py"]
+    ```
+
+### 6.2 CI/CD
+- Use CI/CD pipelines (e.g., GitHub Actions, Jenkins) for:
+  - Linting
+  - Testing
+  - Deployment
+
+### 6.3 Rollback Mechanisms
+- Implement blue-green or canary deployment strategies for safe rollouts.
 
 ---
 
-## **8. Monitoring and Logging Standards**
-- **Monitoring**:
-  - Use Prometheus for metrics and Grafana for visualization.
-  - Track:
-    - Model latency.
-    - Throughput.
-    - Errors.
+## **7. Testing Standards**
+### 7.1 Types of Tests
+- **Unit Tests**: Test individual functions.
+- **Integration Tests**: Test interactions between components.
+- **E2E Tests**: Validate the entire pipeline.
 
-- **Logging**:
-  - Use `logging` library in Python.
-  - Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL.
-
-```python
-import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
-logger = logging.getLogger(__name__)
-```
+### 7.2 Tools
+- Use `pytest` for Python testing.
+- Maintain high test coverage (e.g., >80%).
 
 ---
 
-## **9. Security**
-- **Access Control**: Restrict access to sensitive files (e.g., `.env`).
-- **Secrets Management**: Use tools like AWS Secrets Manager or Azure Key Vault.
-- **Data Encryption**: Ensure data is encrypted in transit (TLS) and at rest.
+## **8. Documentation**
+### 8.1 README
+- Include clear instructions on:
+  - Setting up the environment
+  - Running pipelines
+  - Deployment processes
 
----
+### 8.2 Code Comments
+- Write meaningful comments for complex code.
+- Use docstrings to describe functions/classes.
 
-## **10. Conclusion**
-This coding standards document ensures that all team members adhere to consistent practices for developing, deploying, and maintaining ML and AI pipelines, fostering collaboration, scalability, and reliability.
+### 8.3 Configuration Documentation
+- Include a dedicated section for describing `.yaml` and `.env` configurations.
