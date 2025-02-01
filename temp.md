@@ -1,44 +1,87 @@
-Here’s a Python program that uses Plotly to visualize the given DataFrame. Assuming your DataFrame is named `df`, the script creates a scatter plot with the `date` column on the x-axis, `interest_income_domestic_loan` on the y-axis, and colors the data points by `requestId`.
+**Design Document: Arize AI Organizational Structure for BreadFinancial**
 
-```python
-import pandas as pd
-import plotly.express as px
+**1. Introduction**
 
-# Example DataFrame
-data = {
-    "requestId": ["C-USA", "C-USA", "C-USA", "BNPQY-USA", "BNPQY-USA"],
-    "interest_income_domestic_loan": [7606.0, 6781.0, 6374.0, None, None],
-    "date": ["2020-03-31", "2020-06-30", "2020-09-30", "2024-03-29", "2024-06-28"]
-}
-df = pd.DataFrame(data)
+This document outlines the recommended organizational structure and security configurations for BreadFinancial's Arize AI deployment. The design ensures that machine learning models are systematically organized, securely managed, and accessible only to authorized personnel, facilitating efficient future use and maintenance.
 
-# Ensure the 'date' column is in datetime format
-df['date'] = pd.to_datetime(df['date'], errors='coerce')
+**2. Organizational Structure**
 
-# Create a Plotly scatter plot
-fig = px.scatter(
-    df,
-    x="date",
-    y="interest_income_domestic_loan",
-    color="requestId",
-    title="Interest Income on Domestic Loans Over Time",
-    labels={"date": "Date", "interest_income_domestic_loan": "Interest Income"},
-)
+Arize AI's hierarchy consists of Accounts, Organizations, and Spaces, which can be leveraged to mirror BreadFinancial's operational and security requirements.
 
-# Update layout for better visualization
-fig.update_layout(
-    xaxis_title="Date",
-    yaxis_title="Interest Income (Domestic Loan)",
-    legend_title="Request ID",
-)
+- **Account**: Represents the top-level entity encompassing all organizations within BreadFinancial.
 
-# Show the plot
-fig.show()
-```
+- **Organizations**: Serve as subdivisions within the account, representing major business units or cloud environments.
 
-### Steps:
-1. Ensure that your `date` column is correctly converted to a `datetime` format using `pd.to_datetime()`.
-2. Use `plotly.express.scatter` to plot the data with appropriate arguments for `x`, `y`, and `color`.
-3. Display the interactive plot using `fig.show()`.
+- **Spaces**: Function as subcategories within organizations, allowing for further segmentation and management of models.
 
-If your data differs, replace the example DataFrame with the actual one from your dataset.
+**3. Proposed Structure**
+
+Based on the architects' recommendations and team requirements, the following structure is proposed:
+
+- **Account**: BreadFinancial
+
+  - **Organization**: AWS
+
+    - **Space**: Marketing
+
+    - **Space**: AlCOE
+
+    - **Space**: Credit Risk
+
+    - **Space**: Finance Model COE
+
+  - **Organization**: Azure
+
+    - **Space**: Marketing
+
+    - **Space**: AlCOE
+
+    - **Space**: Credit Risk
+
+    - **Space**: Finance Model COE
+
+**4. Security and Access Control**
+
+To ensure that only the MLOps team and respective team members have access to their designated spaces, the following Role-Based Access Control (RBAC) measures are recommended:
+
+- **Role Assignments**:
+
+  - **MLOps Team**: Assign as 'Admin' at the Organization level (AWS and Azure). This grants full access to all spaces within each organization.
+
+  - **Team Members**: Assign as 'Admin' or 'Member' at the Space level, depending on their roles.
+
+    - **Admin**: Full access to all entities within the space.
+
+    - **Member**: Access determined by space roles.
+
+- **Integration with Active Directory (AD) Groups**:
+
+  Utilize existing AD groups to manage access:
+
+  - **Res-azure_prd_dstk_AlCOEUser**: Map to the AlCOE space.
+
+  - **Res-azure_prd_dstk_CreditRiskUser**: Map to the Credit Risk space.
+
+  - **Res-azure_prd_dstk_MarketingUser**: Map to the Marketing space.
+
+  - **Res-azure_prd_dstk_FinmodelCOEUser**: Map to the Finance Model COE space.
+
+  This mapping ensures that only users within these AD groups can access their respective spaces.
+
+**5. Deployment and Pre-Deployment Considerations**
+
+Implementing pre-deployment pipelines in Arize AI is advisable for the following reasons:
+
+- **Early Detection**: Identifying potential issues before models are deployed to production.
+
+- **Performance Benchmarking**: Establishing baseline metrics to compare against post-deployment performance.
+
+- **Compliance and Validation**: Ensuring models meet regulatory and internal standards prior to deployment.
+
+By setting up pre-deployment pipelines, BreadFinancial can proactively address potential challenges, ensuring smoother transitions to production environments.
+
+**6. Conclusion**
+
+The proposed organizational structure and security configurations are designed to align with BreadFinancial's operational needs and Arize AI's capabilities. By implementing this design, the company can ensure that its machine learning models are organized, secure, and primed for efficient future use.
+
+For detailed information on Arize AI's RBAC and organizational settings, please refer to the official documentation. ([docs.arize.com](https://docs.arize.com/arize/admin-and-settings/1.-setting-up-your-account?utm_source=chatgpt.com)) 
