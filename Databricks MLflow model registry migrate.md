@@ -28,24 +28,40 @@ def export_model_registry(output_path):
     os.makedirs(output_path, exist_ok=True)
     
     for model in models:
-        model_data = model.to_dict()
-        model_name = model_data['name']
-        
+        model_name = model.name
+        model_data = {
+            "name": model.name,
+            "description": model.description,
+            "tags": model.tags,
+            "latest_versions": []
+        }
+
         # Save metadata
-        with open(os.path.join(output_path, f"{model_name}.json"), "w") as f:
-            json.dump(model_data, f, indent=4)
+        model_dir = os.path.join(output_path, model_name)
+        os.makedirs(model_dir, exist_ok=True)
         
-        # Download all versions
-        for version in model_data["latest_versions"]:
-            model_uri = version["source"]
-            local_path = os.path.join(output_path, model_name, f"v{version['version']}")
-            os.makedirs(local_path, exist_ok=True)
+        for version in model.latest_versions:
+            version_info = {
+                "version": version.version,
+                "status": version.status,
+                "run_id": version.run_id,
+                "source": version.source,
+                "creation_timestamp": version.creation_timestamp,
+            }
+            model_data["latest_versions"].append(version_info)
 
             # Download the model artifact
-            mlflow.artifacts.download_artifacts(model_uri, local_path)
+            artifact_path = os.path.join(model_dir, f"v{version.version}")
+            os.makedirs(artifact_path, exist_ok=True)
+            mlflow.artifacts.download_artifacts(version.source, artifact_path)
+
+        # Save model metadata as JSON
+        with open(os.path.join(model_dir, "metadata.json"), "w") as f:
+            json.dump(model_data, f, indent=4)
 
 export_model_registry("/dbfs/mnt/mlflow_export")
 ```
+
 This will export:
 1. **Model registry metadata** (e.g., tags, versions).
 2. **Model artifacts** (stored in `/dbfs/mnt/mlflow_export`).
@@ -76,25 +92,34 @@ mlflow.set_tracking_uri("databricks")  # Set tracking URI for destination worksp
 client = mlflow.tracking.MlflowClient()
 
 def import_model_registry(input_path):
-    for file in os.listdir(input_path):
-        if file.endswith(".json"):
-            with open(os.path.join(input_path, file), "r") as f:
-                model_data = json.load(f)
+    for model_name in os.listdir(input_path):
+        model_dir = os.path.join(input_path, model_name)
+        metadata_file = os.path.join(model_dir, "metadata.json")
+
+        if not os.path.exists(metadata_file):
+            continue
+
+        with open(metadata_file, "r") as f:
+            model_data = json.load(f)
+        
+        # Create the registered model
+        try:
+            client.create_registered_model(model_name)
+        except Exception as e:
+            print(f"Model {model_name} might already exist: {str(e)}")
+
+        # Register each version
+        for version in model_data["latest_versions"]:
+            artifact_path = os.path.join(model_dir, f"v{version['version']}")
             
-            model_name = model_data["name"]
-            client.create_registered_model(model_name)  # Create model registry entry
-            
-            # Register each version
-            for version in model_data["latest_versions"]:
-                artifact_path = f"{input_path}/{model_name}/v{version['version']}"
-                
-                run_id = mlflow.create_experiment(model_name)
-                with mlflow.start_run(run_id=run_id):
-                    model_info = mlflow.pyfunc.log_model("model", artifact_path=artifact_path)
-                    client.create_model_version(model_name, model_info.model_uri, run_id)
+            # Start a new MLflow run
+            with mlflow.start_run():
+                model_info = mlflow.pyfunc.log_model("model", artifact_path=artifact_path)
+                client.create_model_version(model_name, model_info.model_uri, version["run_id"])
 
 import_model_registry("/dbfs/mnt/mlflow_import")
 ```
+
 This will:
 - **Register models** in the new MLflow instance.
 - **Upload artifacts** from the cloud storage.
