@@ -1,87 +1,119 @@
 **Design Document: Arize AI Organizational Structure for BreadFinancial**
 
-**1. Introduction**
+---
 
-This document outlines the recommended organizational structure and security configurations for BreadFinancial's Arize AI deployment. The design ensures that machine learning models are systematically organized, securely managed, and accessible only to authorized personnel, facilitating efficient future use and maintenance.
+### **1. Introduction**
 
-**2. Organizational Structure**
+This document outlines the recommended organizational structure, security configurations, and deployment considerations for BreadFinancial's Arize AI implementation. It addresses concerns about pre-deployment inference runs, access control, and integration strategies to ensure a secure and efficient machine learning monitoring environment.
 
-Arize AI's hierarchy consists of Accounts, Organizations, and Spaces, which can be leveraged to mirror BreadFinancial's operational and security requirements.
+---
+
+### **2. Organizational Structure**
+
+Arize AI's hierarchy consists of **Accounts, Organizations, and Spaces**, which can be leveraged to align with BreadFinancial's operational and security requirements.
 
 - **Account**: Represents the top-level entity encompassing all organizations within BreadFinancial.
+- **Organizations**: Represent teams or business units, ensuring separation of responsibilities.
+- **Spaces**: Subcategories within organizations, structured based on environment (e.g., Dev, Prod) or project-specific needs.
 
-- **Organizations**: Serve as subdivisions within the account, representing major business units or cloud environments.
+#### **Proposed Structure**
 
-- **Spaces**: Function as subcategories within organizations, allowing for further segmentation and management of models.
+**Account**: BreadFinancial
 
-**3. Proposed Structure**
+- **Organization: AWS**
 
-Based on the architects' recommendations and team requirements, the following structure is proposed:
+  - Space: Dev
+  - Space: Prod
+  - Space: Project-Specific Spaces (if applicable)
 
-- **Account**: BreadFinancial
+- **Organization: Azure**
 
-  - **Organization**: AWS
+  - Space: Dev
+  - Space: Prod
+  - Space: Project-Specific Spaces (if applicable)
 
-    - **Space**: Marketing
+This structure ensures **consistency across teams and environments**, reducing confusion and improving operational efficiency.
 
-    - **Space**: AlCOE
+---
 
-    - **Space**: Credit Risk
+### **3. Security and Access Control**
 
-    - **Space**: Finance Model COE
+To maintain controlled access while preventing unauthorized changes, we recommend the following **Role-Based Access Control (RBAC) policies**:
 
-  - **Organization**: Azure
+#### **Role Assignments:**
 
-    - **Space**: Marketing
+- **MLOps Team**: Assigned as 'Admin' at the **Organization level** (AWS and Azure), granting full access to all spaces within each organization.
+- **Team Members**:
+  - Assigned as 'Admin' or 'Member' **only at the Space level**, depending on their responsibilities.
+  - **Admin**: Full access within the assigned space.
+  - **Member**: Limited access based on specific role requirements.
 
-    - **Space**: AlCOE
+#### **Managing Change & Preventing Accidental Updates:**
 
-    - **Space**: Credit Risk
+To prevent accidental modifications, we recommend the following controls:
 
-    - **Space**: Finance Model COE
+- **Approval Workflow for Key Changes**: Implement governance requiring at least one approval for major changes (e.g., adding/removing inference results, modifying access settings).
+- **Versioning & Audit Logs**: Track changes to models and inference results to allow rollback if necessary.
+- **Scoped Admin Permissions**: Restrict admin permissions to only required users, minimizing accidental updates.
 
-**4. Security and Access Control**
+#### **Integration with Active Directory (AD) Groups:**
 
-To ensure that only the MLOps team and respective team members have access to their designated spaces, the following Role-Based Access Control (RBAC) measures are recommended:
+Utilizing AD groups ensures that only authorized personnel can access their respective spaces:
 
-- **Role Assignments**:
+- **Res-azure\_prd\_dstk\_AlCOEUser** → AlCOE space
+- **Res-azure\_prd\_dstk\_CreditRiskUser** → Credit Risk space
+- **Res-azure\_prd\_dstk\_MarketingUser** → Marketing space
+- **Res-azure\_prd\_dstk\_FinmodelCOEUser** → Finance Model COE space
 
-  - **MLOps Team**: Assign as 'Admin' at the Organization level (AWS and Azure). This grants full access to all spaces within each organization.
+This **automates access control** and prevents manual permission management errors.
 
-  - **Team Members**: Assign as 'Admin' or 'Member' at the Space level, depending on their roles.
+---
 
-    - **Admin**: Full access to all entities within the space.
+### **4. Pre-Deployment Pipelines & Inference Runs**
 
-    - **Member**: Access determined by space roles.
+To separate **pre-deployment inference runs** from production runs and avoid contamination of production metrics, we propose the following:
 
-- **Integration with Active Directory (AD) Groups**:
+#### **Isolation of Pre-Deployment Runs:**
 
-  Utilize existing AD groups to manage access:
+- **Separate Spaces for Pre-Deployment Testing**: Use dedicated **Dev spaces** for pre-deployment inference, ensuring they don’t interfere with production metrics.
+- **Tagging & Metadata Management**: Clearly tag inference runs with `"pre-deployment"` vs. `"production"` labels to facilitate filtering.
+- **Data Segregation in Arize**: Configure separate ingestion pipelines for pre-deployment vs. production runs, ensuring that test runs do not skew actual performance tracking.
 
-  - **Res-azure_prd_dstk_AlCOEUser**: Map to the AlCOE space.
+#### **Pre-Deployment Considerations:**
 
-  - **Res-azure_prd_dstk_CreditRiskUser**: Map to the Credit Risk space.
+- **Early Issue Detection**: Identify potential model issues before production deployment.
+- **Performance Benchmarking**: Establish baseline metrics to compare against post-deployment performance.
+- **Compliance & Validation**: Ensure models meet regulatory and internal standards before release.
 
-  - **Res-azure_prd_dstk_MarketingUser**: Map to the Marketing space.
+---
 
-  - **Res-azure_prd_dstk_FinmodelCOEUser**: Map to the Finance Model COE space.
+### **5. CI/CD & Automation Considerations**
 
-  This mapping ensures that only users within these AD groups can access their respective spaces.
+For automated model deployment and monitoring setup, we recommend:
 
-**5. Deployment and Pre-Deployment Considerations**
+- **GraphQL API for Automation**: Best suited for object creation and pipeline management, mirroring UI functionalities.
+- **Python SDK for Initial Testing**: Useful for integration but requires API keys for authentication.
+- **Evaluation of Delta Sharing for Data Integration**: If SDK-based ingestion has performance limitations, **Delta Sharing** will be assessed as an alternative.
 
-Implementing pre-deployment pipelines in Arize AI is advisable for the following reasons:
+#### **Integration with Databricks & Delta Sharing:**
 
-- **Early Detection**: Identifying potential issues before models are deployed to production.
+- **Credit risk models monitored via EDH in Databricks** can be integrated with Arize AI.
+- **Delta Sharing** can be leveraged to share relevant tables with Arize for efficient data access.
+- **Creating a view with only necessary fields** ensures optimized performance and security.
 
-- **Performance Benchmarking**: Establishing baseline metrics to compare against post-deployment performance.
+---
 
-- **Compliance and Validation**: Ensuring models meet regulatory and internal standards prior to deployment.
+### **6. Implementation Plan & Next Steps**
 
-By setting up pre-deployment pipelines, BreadFinancial can proactively address potential challenges, ensuring smoother transitions to production environments.
+**Decisions Made in Meeting:**
+✅ Start with **Python SDK** for initial testing.\
+✅ Evaluate **Delta Sharing** if SDK-based ingestion proves inefficient.\
+✅ Maintain **consistent organizational structure** within Arize AI.\
+✅ Implement **incremental testing** before full production deployment.
 
-**6. Conclusion**
+**Action Items:**
 
-The proposed organizational structure and security configurations are designed to align with BreadFinancial's operational needs and Arize AI's capabilities. By implementing this design, the company can ensure that its machine learning models are organized, secure, and primed for efficient future use.
-
-For detailed information on Arize AI's RBAC and organizational settings, please refer to the official documentation. ([docs.arize.com](https://docs.arize.com/arize/admin-and-settings/1.-setting-up-your-account?utm_source=chatgpt.com)) 
+1. **Test Python SDK** for data ingestion efficiency.
+2. **Establish pre-deployment isolation strategies** (dedicated spaces, tagging, data segregation).
+3. **Implement RBAC governance** (approval workflows, audit logs, scoped permissions).
+4. **Assess Delta Sharing feasibility** for Databricks integration if SDK performance is inadequate.
