@@ -1,24 +1,24 @@
-**Design Document: Arize AI Organizational Structure for BreadFinancial**
+**Design Document: Arize AI Organizational Structure for Bread Financial**
 
 ---
 
 ### **1. Introduction**
 
-This document outlines the recommended organizational structure, security configurations, and deployment considerations for BreadFinancial's Arize AI implementation. It addresses concerns about pre-deployment inference runs, access control, and integration strategies to ensure a secure and efficient machine learning monitoring environment.
+This document outlines the recommended organizational structure, security configurations, and deployment considerations for Bread Financial's Arize AI implementation. It addresses concerns about pre-deployment inference runs, access control, and integration strategies to ensure a secure and efficient machine learning monitoring environment.
 
 ---
 
 ### **2. Organizational Structure**
 
-Arize AI's hierarchy consists of **Accounts, Organizations, and Spaces**, which can be leveraged to align with BreadFinancial's operational and security requirements.
+Arize AI's hierarchy consists of **Accounts, Organizations, and Spaces**, which can be leveraged to align with Bread Financial's operational and security requirements.
 
-- **Account**: Represents the top-level entity encompassing all organizations within BreadFinancial.
+- **Account**: Represents the top-level entity encompassing all organizations within Bread Financial.
 - **Organizations**: Represent teams or business units, ensuring separation of responsibilities.
 - **Spaces**: Subcategories within organizations, structured based on environment (e.g., Dev, Prod) or project-specific needs.
 
 #### **Proposed Structure**
 
-**Account**: BreadFinancial
+**Account**: Bread Financial
 
 - **Organization: AWS**
 
