@@ -13,24 +13,26 @@ This document outlines the recommended organizational structure, security config
 Arize AI's hierarchy consists of **Accounts, Organizations, and Spaces**, which can be leveraged to align with Bread Financial's operational and security requirements.
 
 - **Account**: Represents the top-level entity encompassing all organizations within Bread Financial.
-- **Organizations**: Represent teams or business units, ensuring separation of responsibilities.
-- **Spaces**: Subcategories within organizations, structured based on environment (e.g., Dev, Prod) or project-specific needs.
+- **Organizations**: Represent environments, ensuring separation of responsibilities.
+- **Spaces**: Subcategories within organizations, structured based on team-specific needs.
 
 #### **Proposed Structure**
 
 **Account**: Bread Financial
 
-- **Organization: AWS**
+- **Organization: Prod**
+  - Space: MLOps
+  - Space: Al_CoE
+  - Space: Credit_Risk
+  - Space: Marketing_DS
+  - Space: Fin_Model_CoE
 
-  - Space: Dev
-  - Space: Prod
-  - Space: Project-Specific Spaces (if applicable)
-
-- **Organization: Azure**
-
-  - Space: Dev
-  - Space: Prod
-  - Space: Project-Specific Spaces (if applicable)
+- **Organization: Non-Prod**
+  - Space: MLOps
+  - Space: Al_CoE
+  - Space: Credit_Risk
+  - Space: Marketing_DS
+  - Space: Fin_Model_CoE
 
 This structure ensures **consistency across teams and environments**, reducing confusion and improving operational efficiency.
 
@@ -42,7 +44,7 @@ To maintain controlled access while preventing unauthorized changes, we recommen
 
 #### **Role Assignments:**
 
-- **MLOps Team**: Assigned as 'Admin' at the **Organization level** (AWS and Azure), granting full access to all spaces within each organization.
+- **MLOps Team**: Assigned as 'Admin' at the **Organization level** (Prod and Non-Prod), granting full access to all spaces within each organization.
 - **Team Members**:
   - Assigned as 'Admin' or 'Member' **only at the Space level**, depending on their responsibilities.
   - **Admin**: Full access within the assigned space.
@@ -60,10 +62,14 @@ To prevent accidental modifications, we recommend the following controls:
 
 Utilizing AD groups ensures that only authorized personnel can access their respective spaces:
 
-- **Res-azure\_prd\_dstk\_AlCOEUser** → AlCOE space
-- **Res-azure\_prd\_dstk\_CreditRiskUser** → Credit Risk space
-- **Res-azure\_prd\_dstk\_MarketingUser** → Marketing space
-- **Res-azure\_prd\_dstk\_FinmodelCOEUser** → Finance Model COE space
+- **Res-prod_dstk_AlCOEUser** → Al_CoE space
+- **Res-prod_dstk_CreditRiskUser** → Credit_Risk space
+- **Res-prod_dstk_MarketingUser** → Marketing_DS space
+- **Res-prod_dstk_FinmodelCOEUser** → Fin_Model_CoE space
+- **Res-nonprod_dstk_AlCOEUser** → Al_CoE space
+- **Res-nonprod_dstk_CreditRiskUser** → Credit_Risk space
+- **Res-nonprod_dstk_MarketingUser** → Marketing_DS space
+- **Res-nonprod_dstk_FinmodelCOEUser** → Fin_Model_CoE space
 
 This **automates access control** and prevents manual permission management errors.
 
@@ -75,7 +81,7 @@ To separate **pre-deployment inference runs** from production runs and avoid con
 
 #### **Isolation of Pre-Deployment Runs:**
 
-- **Separate Spaces for Pre-Deployment Testing**: Use dedicated **Dev spaces** for pre-deployment inference, ensuring they don’t interfere with production metrics.
+- **Separate Spaces for Pre-Deployment Testing**: Use dedicated **Non-Prod spaces** for pre-deployment inference, ensuring they don’t interfere with production metrics.
 - **Tagging & Metadata Management**: Clearly tag inference runs with `"pre-deployment"` vs. `"production"` labels to facilitate filtering.
 - **Data Segregation in Arize**: Configure separate ingestion pipelines for pre-deployment vs. production runs, ensuring that test runs do not skew actual performance tracking.
 
