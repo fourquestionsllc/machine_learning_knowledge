@@ -1,124 +1,165 @@
 # Building a RAG-Based Chatbot with AutoGen: A Multi-Agent Approach
 
 ## Introduction
-Retrieval-Augmented Generation (RAG) is a powerful technique that combines the knowledge retrieval capabilities of a vector database with the generative power of Large Language Models (LLMs). In this blog, we will build a RAG-based chatbot using **AutoGen**, a multi-agent framework that enables LLM-based applications to work collaboratively.
+Retrieval-Augmented Generation (RAG) enhances chatbots by incorporating **external knowledge retrieval** into the response generation process. In this article, we'll implement a **multi-agent RAG chatbot using AutoGen**, leveraging agents for different tasks such as:
+- **Deciding whether retrieval is needed**
+- **Rewriting questions into a stand-alone format**
+- **Retrieving relevant documents from a vector database**
+- **Generating responses based on retrieved documents**
+- **Orchestrating agent interactions**
 
-We will design multiple agents for different tasks:
-1. **Orchestrator Agent** - Manages the overall workflow.
-2. **Query Classification Agent** - Determines whether document retrieval is required.
-3. **Question Rewriting Agent** - Reformulates the user’s query into a stand-alone question.
-4. **Retriever Agent** - Retrieves relevant chunks from a vector database.
-5. **Answer Generation Agent** - Generates the final response based on the retrieved context.
+## Architecture Overview
+We'll use **AutoGen's agent-based framework** to implement the following agents:
+1. **Retrieval Decision Agent** - Determines if a query requires document retrieval.
+2. **Question Rewriting Agent** - Converts user queries into a stand-alone format.
+3. **Retrieval Agent** - Queries a vector database for relevant document chunks.
+4. **Answer Generation Agent** - Generates responses based on retrieved information.
+5. **Orchestration Agent** - Coordinates the agents and manages the workflow.
 
-Let’s dive into the implementation!
+---
 
-## Setting Up the Environment
-Install the necessary dependencies:
+## Implementation
+### Step 1: Install Dependencies
 ```bash
 pip install autogen langchain chromadb openai
 ```
 
-### Initialize AutoGen Agents
+---
 
-We first define the required agents using AutoGen’s `AssistantAgent` class.
-
+### Step 2: Define Agent Prompts
+#### 1. Retrieval Decision Agent Prompt
+This agent determines if a document search is required.
 ```python
-import autogen
+retrieval_decision_prompt = """
+You are a decision-making agent. Your task is to determine whether the user’s question requires document retrieval.
+If the question is general knowledge or common sense, respond with 'NO'.
+If the answer requires external document retrieval, respond with 'YES'.
+User Question: {question}
+Decision (YES or NO):
+"""
+```
+
+#### 2. Question Rewriting Agent Prompt
+This agent reformulates questions into a stand-alone format.
+```python
+question_rewrite_prompt = """
+You are a question rewriter. Your task is to rewrite the user's query into a self-contained question.
+Make sure the question can be understood without chat history.
+Chat History:
+{history}
+User Question: {question}
+Rewritten Question:
+"""
+```
+
+#### 3. Retrieval Agent
+Retrieves relevant chunks from a **ChromaDB** vector database.
+```python
+retrieval_prompt = """
+You are a retrieval agent. Given a question, retrieve the top 3 relevant chunks from the vector database.
+User Question: {question}
+Relevant Chunks:
+"""
+```
+
+#### 4. Answer Generation Agent
+This agent generates an answer using retrieved document chunks.
+```python
+answer_generation_prompt = """
+You are an AI assistant. Use the following retrieved documents to generate an informative answer.
+
+Retrieved Chunks:
+{documents}
+
+User Question: {question}
+Answer:
+"""
+```
+
+---
+
+### Step 3: Implement AutoGen Agents
+
+#### 1. Import Required Libraries
+```python
+from autogen import Agent, UserProxyAgent, GroupChat, GroupChatManager
 from langchain.vectorstores import Chroma
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.llms import OpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.document_loaders import TextLoader
 
-# Initialize the LLM
-llm = OpenAI(model_name="gpt-4", temperature=0.7)
-
-# Define the orchestrator
-orchestrator = autogen.AssistantAgent(name="Orchestrator", llm=llm)
-
-# Define the query classification agent
-def query_classification_function(message, history):
-    """Classifies whether document retrieval is needed."""
-    if "document" in message.lower() or "reference" in message.lower():
-        return True
-    return False
-
-query_classifier = autogen.AssistantAgent(
-    name="QueryClassifier",
-    llm=llm,
-    function=query_classification_function
-)
-
-# Define the question rewriting agent
-question_rewriter = autogen.AssistantAgent(
-    name="QuestionRewriter",
-    llm=llm,
-    function=lambda message, history: f"Rewrite: {message}"
-)
-
-# Initialize the vector database
-vectorstore = Chroma(persist_directory="./chroma_db", embedding_function=OpenAIEmbeddings())
-retriever = vectorstore.as_retriever()
-
-# Define the retriever agent
-def retrieval_function(message, history):
-    """Retrieves relevant document chunks from the vector database."""
-    docs = retriever.get_relevant_documents(message)
-    return "\n".join([doc.page_content for doc in docs])
-
-retrieval_agent = autogen.AssistantAgent(
-    name="Retriever",
-    llm=llm,
-    function=retrieval_function
-)
-
-# Define the answer generation agent
-def answer_generation_function(message, history):
-    """Generates a response based on retrieved context."""
-    return llm.generate(message)
-
-answer_generator = autogen.AssistantAgent(
-    name="AnswerGenerator",
-    llm=llm,
-    function=answer_generation_function
-)
+# Load and prepare vector database
+embedding_function = OpenAIEmbeddings()
+vector_db = Chroma(persist_directory="./chroma_db", embedding_function=embedding_function)
 ```
 
-### Orchestration Logic
-The Orchestrator will coordinate the workflow:
-1. Determine if retrieval is needed.
-2. Rewrite the question.
-3. Retrieve relevant documents (if necessary).
-4. Generate the final answer.
-
+#### 2. Define Individual Agents
 ```python
-def orchestrate_chat(user_query):
-    # Step 1: Check if document retrieval is needed
-    retrieval_needed = query_classifier.generate(user_query)
-    
-    # Step 2: Rewrite the query
-    rewritten_query = question_rewriter.generate(user_query)
-    
-    # Step 3: Retrieve documents if needed
-    context = ""
-    if retrieval_needed:
-        context = retrieval_agent.generate(rewritten_query)
-    
-    # Step 4: Generate the answer
-    final_input = f"Context: {context}\nUser Question: {rewritten_query}"
-    response = answer_generator.generate(final_input)
-    
-    return response
+retrieval_decision_agent = Agent(
+    name="retrieval_decision",
+    system_message=retrieval_decision_prompt
+)
 
-# Example usage
-user_input = "Can you provide details from the policy document?"
-response = orchestrate_chat(user_input)
-print(response)
+question_rewrite_agent = Agent(
+    name="question_rewriter",
+    system_message=question_rewrite_prompt
+)
+
+retrieval_agent = Agent(
+    name="retrieval",
+    system_message=retrieval_prompt,
+    function=lambda question: vector_db.similarity_search(question, k=3)
+)
+
+answer_generation_agent = Agent(
+    name="answer_generator",
+    system_message=answer_generation_prompt
+)
 ```
+
+#### 3. Implement the Orchestration Agent
+```python
+def orchestrate_chat(user_query, chat_history):
+    # Step 1: Decide if retrieval is needed
+    retrieval_needed = retrieval_decision_agent.run(question=user_query)
+    if retrieval_needed.strip().upper() == "NO":
+        return answer_generation_agent.run(documents="", question=user_query)
+    
+    # Step 2: Rewrite the question
+    rewritten_question = question_rewrite_agent.run(history=chat_history, question=user_query)
+    
+    # Step 3: Retrieve relevant documents
+    retrieved_docs = retrieval_agent.run(question=rewritten_question)
+    
+    # Step 4: Generate the final answer
+    response = answer_generation_agent.run(documents=retrieved_docs, question=user_query)
+    return response
+```
+
+---
+
+### Step 4: Running the Chatbot
+```python
+chat_history = []
+while True:
+    user_input = input("User: ")
+    if user_input.lower() in ["exit", "quit"]:
+        break
+    
+    response = orchestrate_chat(user_input, chat_history)
+    chat_history.append(("User", user_input))
+    chat_history.append(("AI", response))
+    print("AI:", response)
+```
+
+---
 
 ## Conclusion
-By leveraging **AutoGen’s multi-agent architecture**, we created a **RAG-based chatbot** that intelligently decides when to retrieve documents, refines user queries, fetches relevant information from a vector database, and generates high-quality responses. This approach enhances accuracy and efficiency, making it ideal for **enterprise AI assistants, legal chatbots, and customer support systems**.
+In this article, we built a **multi-agent RAG chatbot using AutoGen**. The chatbot:
+- **Decides if document retrieval is necessary**
+- **Rewrites user queries into a self-contained format**
+- **Retrieves relevant document chunks from a vector database**
+- **Generates high-quality responses**
+- **Uses an orchestration agent to manage interactions**
 
-Next Steps:
-- **Extend the retrieval mechanism** to handle larger corpora.
-- **Implement memory and caching** for context persistence.
-- **Deploy using FastAPI or Streamlit** for real-world applications.
+This modular approach ensures **scalability, adaptability, and efficient knowledge retrieval**, making it ideal for enterprise chatbots and knowledge-based assistants.
