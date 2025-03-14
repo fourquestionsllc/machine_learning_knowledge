@@ -1,3 +1,54 @@
+### 📊 **Comparison Table: Contextual Bandit vs Q-Learning vs SARSA**
+
+| Feature / Criteria                  | **Contextual Bandit**                    | **Q-Learning**                             | **SARSA**                                  |
+|------------------------------------|------------------------------------------|--------------------------------------------|---------------------------------------------|
+| **Type**                           | Bandit (single-step RL)                  | Model-free, Off-policy RL                  | Model-free, On-policy RL                    |
+| **State Transitions**              | ❌ None (no next state)                   | ✅ Yes (state → action → next state)       | ✅ Yes                                       |
+| **Action Selection**               | Based only on current context            | Policy from max Q-value                    | Policy from current policy (e.g., ε-greedy) |
+| **Learning Target**                | Immediate reward                         | \( r + \gamma \cdot \max_a' Q(s', a') \)   | \( r + \gamma \cdot Q(s', a') \)            |
+| **Exploration Policy**            | ε-Greedy, UCB, Thompson Sampling         | Usually ε-Greedy                           | Usually ε-Greedy                            |
+| **Update Type**                    | Immediate reward update only             | Off-policy (learns from greedy target)     | On-policy (learns from policy's action)     |
+| **Use Case**                       | No long-term planning (ads, pricing)     | Environments with delayed rewards          | Same as Q-Learning, but more policy-aware   |
+| **Complexity**                     | Low (no bootstrapping, no transitions)   | Moderate (bootstrapping + transitions)     | Moderate                                    |
+| **Learning Stability**             | Simple, stable                          | Can be unstable without tricks (target net, replay) | Slightly more stable than Q-learning     |
+| **Long-Term Planning**             | ❌ Not supported                         | ✅ Yes                                     | ✅ Yes                                       |
+| **Example**                        | Choose best ad for a user (now)          | Navigate a maze to reach a goal            | Navigate a maze while following current behavior |
+
+---
+
+### 🔍 **Illustration with Example**
+
+Let's say you're optimizing **price for a product**.
+
+- **Contextual Bandit**: "Given user context, what price maximizes today's purchase?"  
+  → No memory of past — just optimize per context.
+
+- **Q-Learning**: "If I price low now, how does it affect **future sales/rewards**?"  
+  → Plans ahead, learns a long-term strategy.
+
+- **SARSA**: Similar to Q-Learning, but learns based on the **actual policy's behavior**, which could help in **safer learning** or when exploration affects environment dynamics.
+
+---
+
+### 🧠 **Key Insights:**
+| Insight | Explanation |
+|--------|-------------|
+| Contextual Bandits are simpler | Good for short-term problems, low data requirements |
+| Q-Learning focuses on optimal policy | Learns best possible decisions, independent of current behavior |
+| SARSA learns what you **actually do** | Better for safer or conservative agents where behavior matters |
+
+---
+
+### 🔄 When to Use What?
+
+| Situation | Best Method |
+|-----------|-------------|
+| Short-term feedback only, no future effects | Contextual Bandit |
+| Long-term planning, optimal strategy needed | Q-Learning |
+| Risk-aware or safer exploration desired | SARSA |
+
+---
+
 ### **Contextual Bandits, Q-Learning, and SARSA Algorithms**
 
 #### **1. Contextual Bandits**
