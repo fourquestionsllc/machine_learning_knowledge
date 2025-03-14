@@ -12,7 +12,7 @@
 
 The **Q-function** is updated iteratively using the **Bellman Equation**:
 
-$$\[Q(s, a) \leftarrow Q(s, a) + \alpha \left[ r + \gamma \cdot \max_{a'} Q(s', a') - Q(s, a) \right]\]$$
+$$Q(s, a) \leftarrow Q(s, a) + \alpha \left[ r + \gamma \cdot \max_{a'} Q(s', a') - Q(s, a) \right]$$
 
 Where:
 - \( s \): current state  
