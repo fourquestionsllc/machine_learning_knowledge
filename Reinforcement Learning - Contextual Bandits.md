@@ -1,4 +1,4 @@
-## 🎯 What is a Contextual Bandit? (Recap)
+## 🎯 What is a Contextual Bandit?
 A **Contextual Bandit** is a reinforcement learning setting where:
 - At each time step:
   1. The agent sees some **context \( x \)** (aka state/features).
