@@ -276,6 +276,7 @@ Contextual Bandits are ideal when:
 - Fast training + low complexity is desired
 
 ---
+---
 
 ### **Contextual Bandits: What Are They?**
 
