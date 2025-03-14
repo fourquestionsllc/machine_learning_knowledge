@@ -65,10 +65,10 @@ You train a **separate reward model per action**, e.g., a regression or neural n
 - Use **posterior sampling** to choose actions
 
 ### ✍️ Training Algorithm
-1. For each action \( a \), maintain a Bayesian model for \( P(r|x, a) \)
+1. For each action $$\( a \)$$, maintain a Bayesian model for $$\( P(r|x, a) \)$$
 2. At each step:
-   - Observe context \( x_t \)
-   - **Sample reward estimate** \( \tilde{r}_a \sim P(r|x_t, a) \)
+   - Observe context $$\( x_t \)$$
+   - **Sample reward estimate** $$\( \tilde{r}_a \sim P(r|x_t, a) \)$$
    - Select action \( a_t = \arg\max_a \tilde{r}_a \)
    - Observe reward \( r_t \)
    - **Update posterior** for action \( a_t \)
