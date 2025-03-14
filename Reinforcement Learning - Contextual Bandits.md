@@ -1,9 +1,9 @@
 ## 🎯 What is a Contextual Bandit?
 A **Contextual Bandit** is a reinforcement learning setting where:
 - At each time step:
-  1. The agent sees some **context \( x \)** (aka state/features).
-  2. It chooses an **action \( a \)**.
-  3. It receives a **reward \( r(x, a) \)** — **but only for the chosen action**, not others.
+  1. The agent sees some **context $$\( x \)$$** (aka state/features).
+  2. It chooses an **action $$\( a \)$$**.
+  3. It receives a **reward $$\( r(x, a) \)$$** — **but only for the chosen action**, not others.
   4. There is **no state transition** or future impact — it's a single-shot decision problem.
 
 ### 🔁 The goal:
