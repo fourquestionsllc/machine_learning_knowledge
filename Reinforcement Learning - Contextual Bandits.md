@@ -86,13 +86,11 @@ You train a **separate reward model per action**, e.g., a regression or neural n
 - Adds an **exploration bonus** based on **uncertainty or visit count**
 
 ### ✍️ Training Algorithm
-1. For each action \( a \), learn mean reward \( \hat{r}_a(x) \) and uncertainty \( u_a(x) \)
+1. For each action $$\( a \)$$, learn mean reward $$\( \hat{r}_a(x) \)$$ and uncertainty $$\( u_a(x) \)$$
 2. At each step:
-   - Observe context \( x \)
+   - Observe context $$\( x \)$$
    - Select action:
-     \[
-     a = \arg\max_a \left[ \hat{r}_a(x) + \text{uncertainty bonus}_a(x) \right]
-     \]
+     $$a = \arg\max_a \left[ \hat{r}_a(x) + \text{uncertainty bonus}_a(x) \right]$$
    - Update model for \( a \) with observed reward
 
 > Uncertainty can be computed via **variance in reward predictions**, **count-based**, or **confidence bounds**
