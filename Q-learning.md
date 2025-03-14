@@ -66,7 +66,7 @@ $$\pi^*(s) = \arg\max_a Q(s, a)$$
 | Training         | Update Q-values using Bellman update rule |
 | Inference        | Pick action with highest Q(s, a) for current state |
 
-
+---
 
 Q-learning is a **reinforcement learning algorithm** that helps an agent learn how to act in an environment to maximize rewards. The agent learns by exploring different actions and updating its knowledge about which actions are better over time. 
 
