@@ -58,11 +58,11 @@ $$b_{a_t} \leftarrow b_{a_t} + r_t x_{t,a_t}$$
 
 | Step | Description |
 |------|-------------|
-| \( A_a \) | Feature covariance matrix |
-| \( b_a \) | Weighted rewards |
-| \( \hat{\theta}_a \) | Estimated reward model |
-| \( \alpha \) | Exploration-exploitation balance |
-| \( \text{UCB}_{t,a} \) | Reward + uncertainty |
+| $$\( A_a \)$$ | Feature covariance matrix |
+| $$\( b_a \)$$ | Weighted rewards |
+| $$\( \hat{\theta}_a \)$$ | Estimated reward model |
+| $$\( \alpha \)$$ | Exploration-exploitation balance |
+| $$\( \text{UCB}_{t,a} \)$$ | Reward + uncertainty |
 
 ---
 
