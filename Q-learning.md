@@ -19,8 +19,8 @@ Where:
 - \( a \): action taken  
 - \( r \): reward received after taking action \( a \)  
 - \( s' \): next state after taking action  
-- \( \alpha \): learning rate (how fast Q-values are updated)  
-- \( \gamma \): discount factor (how much future rewards are valued)
+- \( $$\alpha$$ \): learning rate (how fast Q-values are updated)  
+- \( $$\gamma$$ \): discount factor (how much future rewards are valued)
 
 ---
 
