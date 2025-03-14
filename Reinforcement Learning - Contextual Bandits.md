@@ -7,7 +7,7 @@ A **Contextual Bandit** is a reinforcement learning setting where:
   4. There is **no state transition** or future impact — it's a single-shot decision problem.
 
 ### 🔁 The goal:
-> Learn a **policy** \( \pi(x) \rightarrow a \) that selects actions to **maximize expected reward** for each context.
+> Learn a **policy** $$\( \pi(x) \rightarrow a \)$$ that selects actions to **maximize expected reward** for each context.
 
 ---
 
