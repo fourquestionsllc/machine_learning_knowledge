@@ -32,16 +32,16 @@ Let’s now walk through each algorithm’s **training and inference process** i
 You train a **separate reward model per action**, e.g., a regression or neural net.
 
 #### Steps:
-1. Initialize reward predictors \( Q_a(x) \) for each action \( a \in A \)
+1. Initialize reward predictors \( Q_a(x) \) for each action $$\( a \in A \)$$
 2. Loop over episodes/time steps:
-   - Observe context \( x_t \)
+   - Observe context $$\( x_t \)$$
    - **Action Selection** (ε-greedy):
      - With prob ε: **Random action**
      - With prob 1-ε: Choose action with highest predicted reward:  
-       \( a_t = \arg\max_a Q_a(x_t) \)
-   - Observe reward \( r_t \) for selected action \( a_t \)
-   - **Update model \( Q_{a_t} \)** using supervised learning:
-     - Train with sample \( (x_t, r_t) \)
+       $$\( a_t = \arg\max_a Q_a(x_t) \)$$
+   - Observe reward $$\( r_t \)$$ for selected action $$\( a_t \)$$
+   - **Update model $$\( Q_{a_t} \)$$** using supervised learning:
+     - Train with sample $$\( (x_t, r_t) \)$$
 
 > 🔎 Think of each model \( Q_a \) as learning: "If I take action `a` in context `x`, how much reward do I expect?"
 
