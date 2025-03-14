@@ -29,7 +29,7 @@ For each arm $$\( a \in \{1, ..., K\} \)$$:
 
 ## 🔁 **For each timestep $$\( t = 1, 2, ..., T \)$$:**
 
-### 1. **Observe context vector** $$\( x_{t,a} \in \mathbb{R}^d \) for each arm \( a \)$$
+### 1. **Observe context vector** $$\( x_{t,a} \in \mathbb{R}^d \)$$ for each arm $$\( a \)$$
 
 ### 2. **Estimate model parameters** for each arm:
 $$\hat{\theta}_a = A_a^{-1} b_a$$
