@@ -5,7 +5,7 @@
 | **Type**                           | Bandit (single-step RL)                  | Model-free, Off-policy RL                  | Model-free, On-policy RL                    |
 | **State Transitions**              | ❌ None (no next state)                   | ✅ Yes (state → action → next state)       | ✅ Yes                                       |
 | **Action Selection**               | Based only on current context            | Policy from max Q-value                    | Policy from current policy (e.g., ε-greedy) |
-| **Learning Target**                | Immediate reward                         | \( r + \gamma \cdot \max_a' Q(s', a') \)   | \( r + \gamma \cdot Q(s', a') \)            |
+| **Learning Target**                | Immediate reward                         | $$\( r + \gamma \cdot \max_a' Q(s', a') \)$$   | $$\( r + \gamma \cdot Q(s', a') \)$$            |
 | **Exploration Policy**            | ε-Greedy, UCB, Thompson Sampling         | Usually ε-Greedy                           | Usually ε-Greedy                            |
 | **Update Type**                    | Immediate reward update only             | Off-policy (learns from greedy target)     | On-policy (learns from policy's action)     |
 | **Use Case**                       | No long-term planning (ads, pricing)     | Environments with delayed rewards          | Same as Q-Learning, but more policy-aware   |
