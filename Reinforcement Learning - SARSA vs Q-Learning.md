@@ -18,9 +18,7 @@ It's a **model-free, on-policy reinforcement learning algorithm** used to learn 
 
 ### 📐 SARSA Update Rule (Bellman equation):
 
-\[
-Q(s, a) \leftarrow Q(s, a) + \alpha \left[ r + \gamma \cdot Q(s', a') - Q(s, a) \right]
-\]
+$$Q(s, a) \leftarrow Q(s, a) + \alpha \left[ r + \gamma \cdot Q(s', a') - Q(s, a) \right]$$
 
 Where:
 - \(s\): current state  
@@ -28,8 +26,8 @@ Where:
 - \(r\): reward received  
 - \(s'\): next state  
 - \(a'\): next action (chosen by **same policy**, e.g., ε-greedy)  
-- \(\alpha\): learning rate  
-- \(\gamma\): discount factor
+- \($$\alpha$$\): learning rate  
+- \($$\gamma$$\): discount factor
 
 ---
 
