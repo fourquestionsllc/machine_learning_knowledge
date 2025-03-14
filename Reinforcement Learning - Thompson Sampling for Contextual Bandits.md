@@ -46,7 +46,7 @@ Imagine you're running a **movie streaming service** and want to recommend movie
    - After observing whether the user clicked or not:
      - If the user clicked on Movie A, increase $$\( \alpha \)$$ for Movie A.
      - If they didn’t click, increase $$\( \beta \)$$ for Movie A.
-   - For example, if Movie A had $$\( \alpha = 1 \)$$ and $$\( \beta = 1 \)$$ before, and the user clicked, it becomes $$\( \alpha = 2 \)$$ and $$\( \beta = 1 \)￥￥.
+   - For example, if Movie A had $$\( \alpha = 1 \)$$ and $$\( \beta = 1 \)$$ before, and the user clicked, it becomes $$\( \alpha = 2 \)$$ and $$\( \beta = 1 \)$$.
 
 6. **Repeat:**
    - Over time, this process learns the best recommendations for different contexts.
