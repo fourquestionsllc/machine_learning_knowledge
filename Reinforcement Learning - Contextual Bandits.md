@@ -91,7 +91,7 @@ You train a **separate reward model per action**, e.g., a regression or neural n
    - Observe context $$\( x \)$$
    - Select action:
      $$a = \arg\max_a \left[ \hat{r}_a(x) + \text{uncertainty bonus}_a(x) \right]$$
-   - Update model for \( a \) with observed reward
+   - Update model for $$\( a \)$$ with observed reward
 
 > Uncertainty can be computed via **variance in reward predictions**, **count-based**, or **confidence bounds**
 
@@ -104,20 +104,18 @@ You train a **separate reward model per action**, e.g., a regression or neural n
 ## 🧠 **4. Policy-Based (e.g., Policy Gradient Bandits)**
 
 ### ✍️ Training Algorithm
-- Parameterize a policy: \( \pi(a | x; \theta) \)
+- Parameterize a policy: $$\( \pi(a | x; \theta) \)$$
 - Train the policy directly using **REINFORCE**-style gradient updates
 
 Steps:
-1. Sample action from \( \pi(a | x) \)
-2. Observe reward \( r \)
+1. Sample action from $$\( \pi(a | x) \)$$
+2. Observe reward $$\( r \)$$
 3. Update policy:
-   \[
-   \nabla_\theta J(\theta) = \nabla_\theta \log \pi(a | x) \cdot r
-   \]
+   $$\nabla_\theta J(\theta) = \nabla_\theta \log \pi(a | x) \cdot r$$
 
 ### 🔮 Inference
 - Choose action:
-  - Either **sample from** \( \pi(a|x) \) or **argmax** \( \pi(a|x) \)
+  - Either **sample from** $$\( \pi(a|x) \)$$ or **argmax** $$\( \pi(a|x) \)$$
 
 ---
 
