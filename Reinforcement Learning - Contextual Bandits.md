@@ -1,3 +1,161 @@
+## 🎯 What is a Contextual Bandit? (Recap)
+A **Contextual Bandit** is a reinforcement learning setting where:
+- At each time step:
+  1. The agent sees some **context \( x \)** (aka state/features).
+  2. It chooses an **action \( a \)**.
+  3. It receives a **reward \( r(x, a) \)** — **but only for the chosen action**, not others.
+  4. There is **no state transition** or future impact — it's a single-shot decision problem.
+
+### 🔁 The goal:
+> Learn a **policy** \( \pi(x) \rightarrow a \) that selects actions to **maximize expected reward** for each context.
+
+---
+
+## 🧠 Types of Contextual Bandit Algorithms (High-Level)
+
+There are several popular algorithms, each with its own training & inference approach:
+
+| Algorithm | Model Type | Training Style | Inference Style |
+|----------|-------------|----------------|-----------------|
+| **ε-Greedy** | Regression/Neural Net | Supervised learning | Predict rewards, pick best |
+| **Thompson Sampling** | Probabilistic | Bayesian updates | Sample reward estimate, pick best |
+| **UCB** | Regression/Uncertainty | Confidence-based updates | Exploit + explore via confidence |
+| **Policy Gradient (Bandit version)** | Probabilistic policy | Gradient ascent | Sample or argmax from policy |
+
+Let’s now walk through each algorithm’s **training and inference process** in detail, especially the commonly used **model-based (supervised) approaches**.
+
+---
+
+## 🧠 **1. ε-Greedy Contextual Bandits (Model-based)**
+
+### ✍️ **Training Algorithm**
+You train a **separate reward model per action**, e.g., a regression or neural net.
+
+#### Steps:
+1. Initialize reward predictors \( Q_a(x) \) for each action \( a \in A \)
+2. Loop over episodes/time steps:
+   - Observe context \( x_t \)
+   - **Action Selection** (ε-greedy):
+     - With prob ε: **Random action**
+     - With prob 1-ε: Choose action with highest predicted reward:  
+       \( a_t = \arg\max_a Q_a(x_t) \)
+   - Observe reward \( r_t \) for selected action \( a_t \)
+   - **Update model \( Q_{a_t} \)** using supervised learning:
+     - Train with sample \( (x_t, r_t) \)
+
+> 🔎 Think of each model \( Q_a \) as learning: "If I take action `a` in context `x`, how much reward do I expect?"
+
+---
+
+### 🔮 **Inference Algorithm (After Training)**
+
+```text
+1. Observe new context x
+2. Predict reward for each action: Q_a(x)
+3. Choose action a = argmax Q_a(x)
+```
+
+> Simple and effective. It's just inference via **reward prediction per action**.
+
+---
+
+## 🧠 **2. Thompson Sampling (Bayesian Model)**
+
+- Maintain a **probability distribution over model parameters or reward estimates**
+- Use **posterior sampling** to choose actions
+
+### ✍️ Training Algorithm
+1. For each action \( a \), maintain a Bayesian model for \( P(r|x, a) \)
+2. At each step:
+   - Observe context \( x_t \)
+   - **Sample reward estimate** \( \tilde{r}_a \sim P(r|x_t, a) \)
+   - Select action \( a_t = \arg\max_a \tilde{r}_a \)
+   - Observe reward \( r_t \)
+   - **Update posterior** for action \( a_t \)
+
+> Often implemented using **Bayesian linear regression** or **Bayesian neural nets**
+
+### 🔮 Inference
+- Sample reward prediction for each action
+- Pick action with highest sampled reward
+
+---
+
+## 🧠 **3. Upper Confidence Bound (UCB)**
+
+- Adds an **exploration bonus** based on **uncertainty or visit count**
+
+### ✍️ Training Algorithm
+1. For each action \( a \), learn mean reward \( \hat{r}_a(x) \) and uncertainty \( u_a(x) \)
+2. At each step:
+   - Observe context \( x \)
+   - Select action:
+     \[
+     a = \arg\max_a \left[ \hat{r}_a(x) + \text{uncertainty bonus}_a(x) \right]
+     \]
+   - Update model for \( a \) with observed reward
+
+> Uncertainty can be computed via **variance in reward predictions**, **count-based**, or **confidence bounds**
+
+### 🔮 Inference
+- Predict reward + uncertainty bonus
+- Pick action with highest **upper confidence bound**
+
+---
+
+## 🧠 **4. Policy-Based (e.g., Policy Gradient Bandits)**
+
+### ✍️ Training Algorithm
+- Parameterize a policy: \( \pi(a | x; \theta) \)
+- Train the policy directly using **REINFORCE**-style gradient updates
+
+Steps:
+1. Sample action from \( \pi(a | x) \)
+2. Observe reward \( r \)
+3. Update policy:
+   \[
+   \nabla_\theta J(\theta) = \nabla_\theta \log \pi(a | x) \cdot r
+   \]
+
+### 🔮 Inference
+- Choose action:
+  - Either **sample from** \( \pi(a|x) \) or **argmax** \( \pi(a|x) \)
+
+---
+
+## 📌 Summary: Algorithm Comparison (Training & Inference)
+
+| Algorithm | Training Style | Inference |
+|----------|------------------|------------|
+| ε-Greedy Regression | Supervised reward prediction | Predict all rewards, pick best |
+| Thompson Sampling | Bayesian posterior updates | Sample from reward model |
+| UCB | Supervised + uncertainty modeling | Predict reward + uncertainty |
+| Policy Gradient | Policy directly optimized | Sample or argmax from policy |
+
+---
+
+## 🛠️ Example (ε-Greedy Training Pseudocode)
+```python
+# For 3 actions (prices), each with its own model
+models = [NeuralNet(), NeuralNet(), NeuralNet()]
+
+for t in range(T):
+    x = get_context()
+    
+    # ε-greedy
+    if np.random.rand() < epsilon:
+        a = np.random.randint(0, 3)
+    else:
+        preds = [models[i](x) for i in range(3)]
+        a = np.argmax(preds)
+    
+    r = get_reward(x, a)
+    models[a].train_on(x, r)  # Train only selected action’s model
+```
+
+---
+---
+
 ### 🎯 What is a **Contextual Bandits Model**?
 
 A **Contextual Bandit** (also called a **Multi-Armed Bandit with Context**) is a **simplified version of reinforcement learning** where:
