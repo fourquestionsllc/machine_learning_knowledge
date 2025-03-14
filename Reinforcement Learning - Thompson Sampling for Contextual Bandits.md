@@ -27,7 +27,7 @@ Imagine you're running a **movie streaming service** and want to recommend movie
 
 1. **Start with Uncertainty (Prior):**
    - You don’t know which movie the user will prefer initially.
-   - Assume a **probabilistic model** for each movie, e.g., a **Beta distribution** with parameters \( \alpha = 1 \) (successes) and \( \beta = 1 \) (failures). This represents your initial uncertainty about each movie's reward probability.
+   - Assume a **probabilistic model** for each movie, e.g., a **Beta distribution** with parameters $$\( \alpha = 1 \) (successes)$$ and $$\( \beta = 1 \) (failures)$$. This represents your initial uncertainty about each movie's reward probability.
 
 2. **Observe the Context:**
    - For the current user, their features (age, genre preference, etc.) are your context.
@@ -44,9 +44,9 @@ Imagine you're running a **movie streaming service** and want to recommend movie
 
 5. **Update Beliefs (Posterior):**
    - After observing whether the user clicked or not:
-     - If the user clicked on Movie A, increase \( \alpha \) for Movie A.
-     - If they didn’t click, increase \( \beta \) for Movie A.
-   - For example, if Movie A had \( \alpha = 1 \) and \( \beta = 1 \) before, and the user clicked, it becomes \( \alpha = 2 \) and \( \beta = 1 \).
+     - If the user clicked on Movie A, increase $$\( \alpha \)$$ for Movie A.
+     - If they didn’t click, increase $$\( \beta \)$$ for Movie A.
+   - For example, if Movie A had $$\( \alpha = 1 \)$$ and $$\( \beta = 1 \)$$ before, and the user clicked, it becomes $$\( \alpha = 2 \)$$ and $$\( \beta = 1 \)￥￥.
 
 6. **Repeat:**
    - Over time, this process learns the best recommendations for different contexts.
