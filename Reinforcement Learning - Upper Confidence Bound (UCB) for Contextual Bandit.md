@@ -35,7 +35,7 @@ For each arm $$\( a \in \{1, ..., K\} \)$$:
 $$\hat{\theta}_a = A_a^{-1} b_a$$
 
 ### 3. **Compute UCB score for each arm:**
-$$UCB_{t,a} = x_{t,a}^\top \hat{\theta}_a \alpha \cdot  $$ 
+$$UCB_{t,a} = x_{t,a}^\top \hat{\theta}_a + \alpha \cdot  $$ 
 
 and $$\sqrt{x_{t,a}^\top A_a^{-1} x_{t,a}}$$
 
