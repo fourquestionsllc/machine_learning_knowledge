@@ -20,8 +20,8 @@ TS maintains a **posterior distribution over the reward model parameters**, and 
 
 ### ➕ Common Assumptions:
 - **Linear reward model:**  
-  \( r_{t,a} = x_{t,a}^\top \theta_a + \epsilon_t \), where \( \epsilon_t \sim \mathcal{N}(0, \sigma^2) \)
-- **Prior over parameters:** \( \theta_a \sim \mathcal{N}(\mu_{a,0}, \Sigma_{a,0}) \)
+  $$\( r_{t,a} = x_{t,a}^\top \theta_a + \epsilon_t \), where \( \epsilon_t \sim \mathcal{N}(0, \sigma^2) \)$$
+- **Prior over parameters:** $$\( \theta_a \sim \mathcal{N}(\mu_{a,0}, \Sigma_{a,0}) \)$$
 
 ---
 
