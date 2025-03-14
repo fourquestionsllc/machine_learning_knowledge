@@ -31,32 +31,30 @@ Let’s go step by step for **each arm \( a \)**:
 
 ### **Initialization:**
 For each arm \( a \):
-- Set prior: \( \mu_{a,0} = 0 \), \( \Sigma_{a,0} = \lambda I_d \) (Gaussian prior)
-- Set \( A_a = \lambda I_d \) (covariance matrix inverse)
-- Set \( b_a = 0_d \) (weighted rewards vector)
+- Set prior: $$\( \mu_{a,0} = 0 \), \( \Sigma_{a,0} = \lambda I_d \)$$ (Gaussian prior)
+- Set $$\( A_a = \lambda I_d \)$$ (covariance matrix inverse)
+- Set $$\( b_a = 0_d \)$$ (weighted rewards vector)
 
 ---
 
-### **For each round \( t = 1, 2, ..., T \):**
+### **For each round $$\( t = 1, 2, ..., T \)$$:**
 
-1. **Observe context vectors \( x_{t,a} \in \mathbb{R}^d \)** for all arms \( a \)
+1. **Observe context vectors $$\( x_{t,a} \in \mathbb{R}^d \)$$** for all arms $$\( a \)$$
 
 2. **Sample model parameters for each arm:**
-   - For arm \( a \), compute posterior:
-     - \( \hat{\Sigma}_a = A_a^{-1} \)
-     - \( \hat{\mu}_a = A_a^{-1} b_a \)
-   - **Sample \( \tilde{\theta}_a \sim \mathcal{N}(\hat{\mu}_a, \hat{\Sigma}_a) \)**
+   - For arm $$\( a \)$$, compute posterior:
+     - $$\( \hat{\Sigma}_a = A_a^{-1} \)$$
+     - $$\( \hat{\mu}_a = A_a^{-1} b_a \)$$
+   - **Sample $$\( \tilde{\theta}_a \sim \mathcal{N}(\hat{\mu}_a, \hat{\Sigma}_a) \)$$**
 
-3. **Choose arm \( a_t \)** that maximizes estimated reward:
-   \[
-   a_t = \arg\max_a x_{t,a}^\top \tilde{\theta}_a
-   \]
+3. **Choose arm $$\( a_t \)$$** that maximizes estimated reward:
+   $$a_t = \arg\max_a x_{t,a}^\top \tilde{\theta}_a$$
 
-4. **Observe reward \( r_t \)** for the selected arm \( a_t \)
+4. **Observe reward $$\( r_t \)$$** for the selected arm $$\( a_t \)$$
 
-5. **Update posterior for selected arm \( a_t \):**
-   - \( A_{a_t} \leftarrow A_{a_t} + x_{t,a_t} x_{t,a_t}^\top \)
-   - \( b_{a_t} \leftarrow b_{a_t} + r_t x_{t,a_t} \)
+5. **Update posterior for selected arm $$\( a_t \)$$:**
+   - $$\( A_{a_t} \leftarrow A_{a_t} + x_{t,a_t} x_{t,a_t}^\top \)$$
+   - $$\( b_{a_t} \leftarrow b_{a_t} + r_t x_{t,a_t} \)$$
 
 (Other arms remain unchanged.)
 
