@@ -31,11 +31,11 @@ A **Contextual Bandit** (also called a **Multi-Armed Bandit with Context**) is a
 
 ### 🔢 Mathematical Setup
 
-- Let \( x \in \mathcal{X} \) be the **context vector**
-- Action \( a \in \{1, 2, ..., K\} \)
-- Reward \( r(a, x) \) is **only observed for selected action**
+- Let $$\( x \in \mathcal{X} \)$$ be the **context vector**
+- Action $$\( a \in \{1, 2, ..., K\} \)$$
+- Reward $$\( r(a, x) \)$$ is **only observed for selected action**
 
-The goal is to learn a **policy \( \pi(x) \rightarrow a \)** that chooses actions to **maximize expected reward**.
+The goal is to learn a **policy $$\( \pi(x) \rightarrow a \)$$** that chooses actions to **maximize expected reward**.
 
 ---
 
