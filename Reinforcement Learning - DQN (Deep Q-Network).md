@@ -25,7 +25,7 @@ Where:
 - \( \theta \): current network weights
 - \( \theta^- \): **target network weights** (a periodically updated copy of the main network)
 - \( Q(s, a; \theta) \): predicted Q-value from the network
-- \( r + \gamma \cdot \max Q(s', a') \): target Q-value
+- $$\( r + \gamma \cdot \max Q(s', a') \)$$: target Q-value
 
 ---
 
