@@ -19,9 +19,7 @@ It was first introduced by **DeepMind** and made famous by its success on **Atar
 
 ### 🧮 DQN Loss Function
 
-\[
-\mathcal{L}(\theta) = \left( r + \gamma \cdot \max_{a'} Q(s', a'; \theta^-) - Q(s, a; \theta) \right)^2
-\]
+$$\mathcal{L}(\theta) = \left( r + \gamma \cdot \max_{a'} Q(s', a'; \theta^-) - Q(s, a; \theta) \right)^2$$
 
 Where:
 - \( \theta \): current network weights
