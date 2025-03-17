@@ -12,8 +12,8 @@ It was first introduced by **DeepMind** and made famous by its success on **Atar
 
 ### 📐 Core Idea of DQN
 
-- Use a **neural network** \( Q(s, a; \theta) \) to approximate the Q-values.
-- Learn the weights \( \theta \) of the network by minimizing a **loss function** based on the **Q-learning update rule**.
+- Use a **neural network** $$\( Q(s, a; \theta) \)$$ to approximate the Q-values.
+- Learn the weights $$\( \theta \)$$ of the network by minimizing a **loss function** based on the **Q-learning update rule**.
 
 ---
 
@@ -22,9 +22,9 @@ It was first introduced by **DeepMind** and made famous by its success on **Atar
 $$\mathcal{L}(\theta) = \left( r + \gamma \cdot \max_{a'} Q(s', a'; \theta^-) - Q(s, a; \theta) \right)^2$$
 
 Where:
-- \( \theta \): current network weights
-- \( \theta^- \): **target network weights** (a periodically updated copy of the main network)
-- \( Q(s, a; \theta) \): predicted Q-value from the network
+- $$\( \theta \)$$: current network weights
+- $$\( \theta^- \)$$: **target network weights** (a periodically updated copy of the main network)
+- $$\( Q(s, a; \theta) \)$$: predicted Q-value from the network
 - $$\( r + \gamma \cdot \max Q(s', a') \)$$: target Q-value
 
 ---
