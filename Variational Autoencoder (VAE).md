@@ -19,9 +19,7 @@ Additionally, VAEs introduce a **latent distribution** that helps generate diver
 - These define a **probability distribution** over the latent space.
 
 Mathematically, the encoder learns a distribution:  
-\[
-z \sim \mathcal{N}(\mu, \sigma^2)
-\]
+$$z \sim \mathcal{N}(\mu, \sigma^2)$$
 where \( z \) is a latent variable sampled from a Gaussian distribution.
 
 ---
