@@ -19,7 +19,9 @@ Additionally, VAEs introduce a **latent distribution** that helps generate diver
 - These define a **probability distribution** over the latent space.
 
 Mathematically, the encoder learns a distribution:  
+
 $$z \sim \mathcal{N}(\mu, \sigma^2)$$
+
 where \( z \) is a latent variable sampled from a Gaussian distribution.
 
 ---
@@ -27,9 +29,9 @@ where \( z \) is a latent variable sampled from a Gaussian distribution.
 ### **B. Reparameterization Trick**
 - Since backpropagation cannot work with stochastic operations like sampling, VAEs use a trick:
   - Instead of directly sampling \( z \), we use:
-    \[
-    z = \mu + \sigma \cdot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
-    \]
+    
+    $$z = \mu + \sigma \cdot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)$$
+    
   - This allows gradients to flow through \( \mu \) and \( \sigma \) during training.
 
 ---
@@ -52,9 +54,10 @@ The VAE optimizes two loss terms:
    - Ensures that the latent distribution stays close to a standard normal distribution.
    - KL divergence forces \( q(z|x) \) to be close to \( \mathcal{N}(0, I) \), preventing overfitting.
 
-\[
+$$
 L = L_{rec} + \beta \cdot L_{KL}
-\]
+$$
+
 where \( \beta \) is a weight balancing reconstruction and regularization.
 
 ---
