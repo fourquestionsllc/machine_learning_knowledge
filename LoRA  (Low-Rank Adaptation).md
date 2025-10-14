@@ -12,13 +12,13 @@ Instead of fine-tuning billions of weights, LoRA **inserts small trainable rank-
 
 Formally:
 
-> For a weight matrix $$( W_0 \in \mathbb{R}^{d \times k} )$$, LoRA learns two smaller matrices ( A \in \mathbb{R}^{d \times r} ) and ( B \in \mathbb{R}^{r \times k} ) such that:
+> For a weight matrix $$( W_0 \in \mathbb{R}^{d \times k} )$$, LoRA learns two smaller matrices ( $$A \in \mathbb{R}^{d \times r}$$ ) and ( $$$B \in \mathbb{R}^{r \times k}$$ ) such that:
 >
 > [
-> W = W_0 + \Delta W = W_0 + A B
+> $$W = W_0 + \Delta W = W_0 + A B$$
 > ]
 >
-> where ( r \ll \min(d, k) ) (e.g., r = 4, 8, or 16).
+> where ( $$r \ll \min(d, k)$$ ) (e.g., $$r = 4, 8, or 16$$).
 
 ---
 
