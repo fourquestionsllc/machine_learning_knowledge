@@ -1,43 +1,23 @@
-Here’s a **comprehensive comparison table** of **open-source**, **AWS**, **Azure**, and **GCP** tools/services mapped by function — focused on **data engineering** and **machine learning** workloads.
+Here’s a structured comparison table for the functions you mentioned across **Open Source**, **AWS**, **Azure**, and **GCP**:
 
----
-
-### 🧩 Unified Technology Comparison Table
-
-| Function / Category                      | **Open Source**                                            | **AWS**                                         | **Azure**                                             | **GCP**                                         |
-| ---------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------- |
-| **ETL / Data Pipeline Orchestration**    | **Apache Airflow**, Luigi, Prefect, Dagster                | **AWS Glue**, AWS Data Pipeline, Step Functions | **Azure Data Factory**, Synapse Pipelines             | **Cloud Data Fusion**, Cloud Composer (Airflow) |
-| **File System / Object Storage**         | HDFS, MinIO, Ceph                                          | **Amazon S3**, EFS, FSx                         | **Azure Blob Storage**, Data Lake Storage (ADLS Gen2) | **Google Cloud Storage (GCS)**                  |
-| **Distributed Computing / Spark**        | **Apache Spark**, Dask, Ray                                | **EMR (Elastic MapReduce)**                     | **Azure Synapse Spark**, HDInsight                    | **Dataproc (Managed Spark)**                    |
-| **SQL Database (RDBMS)**                 | PostgreSQL, MySQL, MariaDB                                 | **Amazon RDS**, Aurora                          | **Azure SQL Database**, Managed MySQL/PostgreSQL      | **Cloud SQL**, AlloyDB                          |
-| **NoSQL Database**                       | MongoDB, Cassandra, Redis                                  | **DynamoDB**, ElastiCache, Neptune (Graph)      | **Cosmos DB**, Azure Cache for Redis                  | **Firestore**, Bigtable, Memorystore            |
-| **Data Warehouse**                       | Apache Hive, ClickHouse, DuckDB                            | **Amazon Redshift**                             | **Azure Synapse Analytics**                           | **BigQuery**                                    |
-| **Streaming Data / Real-time**           | Apache Kafka, Flink, Spark Streaming                       | **Kinesis**, MSK (Managed Kafka)                | **Event Hubs**, Stream Analytics                      | **Pub/Sub**, Dataflow (Apache Beam)             |
-| **Search Engine / Indexing**             | **Elasticsearch**, OpenSearch, Solr                        | **OpenSearch Service (Managed)**, CloudSearch   | **Azure Cognitive Search**                            | **Elastic Cloud on GCP**                        |
-| **Workflow / Automation / Scheduling**   | Airflow, Cron, Prefect                                     | **AWS Step Functions**, EventBridge             | **Logic Apps**, Data Factory Pipelines                | **Workflows**, Cloud Composer                   |
-| **Containerization / Orchestration**     | **Docker**, **Kubernetes**, Podman                         | **ECS**, **EKS (Elastic Kubernetes Service)**   | **AKS (Azure Kubernetes Service)**                    | **GKE (Google Kubernetes Engine)**              |
-| **Serverless Function / Compute**        | OpenFaaS, Knative                                          | **AWS Lambda**, Fargate                         | **Azure Functions**, Container Apps                   | **Cloud Functions**, Cloud Run                  |
-| **CI/CD**                                | Jenkins, GitHub Actions, GitLab CI                         | **CodePipeline**, CodeBuild, CodeDeploy         | **Azure DevOps**, GitHub Actions                      | **Cloud Build**, Cloud Deploy                   |
-| **ML Framework / Training**              | **TensorFlow**, **PyTorch**, Scikit-learn, XGBoost, MLflow | **SageMaker**                                   | **Azure Machine Learning**                            | **Vertex AI**                                   |
-| **Model Deployment / Serving**           | TensorFlow Serving, TorchServe, BentoML, MLflow            | **SageMaker Endpoints**, ECS/EKS                | **Azure ML Endpoints**, AKS                           | **Vertex AI Endpoints**, Cloud Run              |
-| **Feature Store**                        | Feast, Hopsworks                                           | **SageMaker Feature Store**                     | **Azure ML Feature Store**                            | **Vertex AI Feature Store**                     |
-| **Monitoring / Logging**                 | Prometheus, Grafana, ELK Stack                             | **CloudWatch**, X-Ray                           | **Azure Monitor**, Log Analytics                      | **Cloud Logging**, Cloud Monitoring             |
-| **Data Catalog / Governance**            | Amundsen, DataHub, Apache Atlas                            | **AWS Glue Data Catalog**, Lake Formation       | **Azure Purview (Microsoft Purview)**                 | **Dataplex**, Data Catalog                      |
-| **Message Queue / Event Bus**            | RabbitMQ, NATS, Kafka                                      | **SQS**, SNS, EventBridge                       | **Service Bus**, Event Grid                           | **Pub/Sub**, Eventarc                           |
-| **Version Control / Repo**               | Git, GitLab, GitHub                                        | **CodeCommit**, AWS Amplify                     | **Azure Repos**, GitHub                               | **Cloud Source Repositories**, GitHub           |
-| **Experiment Tracking / MLOps Pipeline** | **MLflow**, Kubeflow, Metaflow                             | **SageMaker Pipelines**, CodePipeline           | **Azure ML Pipelines**, MLflow                        | **Vertex AI Pipelines**, Kubeflow               |
-| **Data Visualization / BI**              | Apache Superset, Metabase, Grafana                         | **QuickSight**                                  | **Power BI**                                          | **Looker Studio (Data Studio)**                 |
-| **Data Lake / Lakehouse**                | Delta Lake, Iceberg, Hudi                                  | **S3 + Lake Formation**                         | **ADLS + Synapse + Purview**                          | **GCS + BigQuery + Dataplex**                   |
-
----
-
-### ⚙️ Notes
-
-* **Open Source** = Ideal for on-prem or hybrid cloud, gives full control and flexibility.
-* **AWS**, **Azure**, **GCP** = Managed services that simplify ops, scaling, and integration with their ecosystems.
-* For **MLOps**, the open-source trio **(MLflow + Kubeflow + Airflow)** mirrors **SageMaker**, **Azure ML**, and **Vertex AI Pipelines** respectively.
-* **Hybrid Example**:
-  Many enterprises combine **Airflow (ETL orchestration)** + **Spark on EMR/Synapse/Dataproc** + **MLflow for experiment tracking** + **Kubernetes for model deployment**.
+| Function / Service            | Open Source Examples                | AWS Example Services                    | Azure Example Services                   | GCP Example Services                         |
+| ----------------------------- | ----------------------------------- | --------------------------------------- | ---------------------------------------- | -------------------------------------------- |
+| ETL                           | Apache NiFi, Apache Airflow, Talend | AWS Glue, Step Functions, Data Pipeline | Azure Data Factory, Synapse Pipelines    | Cloud Dataflow, Dataprep, Composer           |
+| File System / Storage         | HDFS, MinIO, Ceph                   | S3, EFS, FSx                            | Blob Storage, Data Lake Storage Gen2     | Cloud Storage, Filestore                     |
+| Spark                         | Apache Spark                        | EMR, Glue (Spark jobs)                  | Azure Synapse Analytics (Spark pools)    | Dataproc                                     |
+| SQL Database                  | MySQL, PostgreSQL, MariaDB          | RDS (MySQL, PostgreSQL, Aurora)         | Azure SQL Database, SQL Managed Instance | Cloud SQL (MySQL, PostgreSQL, SQL Server)    |
+| NoSQL Database                | MongoDB, Cassandra, Redis           | DynamoDB, DocumentDB, ElastiCache       | Cosmos DB, Table Storage                 | Firestore, Bigtable, Memorystore             |
+| Data Warehouse                | Apache Hive, Presto, ClickHouse     | Redshift                                | Synapse Analytics (Dedicated SQL Pool)   | BigQuery                                     |
+| Streaming Data                | Apache Kafka, Apache Flink          | Kinesis Data Streams, MSK               | Event Hubs, Stream Analytics             | Pub/Sub, Dataflow                            |
+| Search Engine                 | Elasticsearch, Apache Solr          | OpenSearch Service                      | Azure Cognitive Search                   | Cloud Search, Elasticsearch on GCP           |
+| CI/CD                         | Jenkins, GitLab CI/CD, ArgoCD       | CodePipeline, CodeBuild, CodeDeploy     | Azure DevOps Pipelines, GitHub Actions   | Cloud Build, Cloud Deploy, Artifact Registry |
+| Version Control               | Git, GitLab, Bitbucket              | CodeCommit                              | Azure Repos                              | Cloud Source Repositories                    |
+| MLOps                         | MLflow, Kubeflow, TFX               | SageMaker, SageMaker Pipelines          | Azure ML, ML Ops                         | Vertex AI, AI Platform Pipelines             |
+| Serverless Function / Compute | OpenFaaS, Knative                   | Lambda, Fargate                         | Azure Functions, Logic Apps              | Cloud Functions, Cloud Run                   |
+| Containerization              | Docker, Podman                      | ECS, ECR                                | Azure Container Instances, ACR           | GKE, Artifact Registry                       |
+| Orchestration                 | Kubernetes, Apache Airflow          | EKS, Step Functions                     | AKS, Logic Apps                          | GKE, Composer                                |
+| Monitoring                    | Prometheus, Grafana, ELK Stack      | CloudWatch, X-Ray, OpenTelemetry        | Azure Monitor, Application Insights      | Cloud Monitoring, Cloud Logging              |
+| Infrastructure as Code        | Terraform, Ansible, Pulumi          | CloudFormation, CDK                     | ARM Templates, Bicep                     | Deployment Manager, Terraform                |
 
 ---
 
