@@ -99,3 +99,105 @@ Libraries designed for large-scale data processing:
 ---
 
 By leveraging incremental learning, batch processing, and distributed systems, you can scale large datasets effectively without loading everything into memory.
+
+
+---
+
+If a model cannot fit into GPU memory, there are several strategies you can use, depending on your setup and framework. Let me break them down carefully:
+
+---
+
+### **1. Reduce Batch Size**
+
+* **What it does:** Smaller batches consume less memory.
+* **Trade-off:** Too small batch size may affect training stability or convergence.
+* **Example (PyTorch):**
+
+```python
+train_loader = DataLoader(dataset, batch_size=16, shuffle=True)  # reduced from 64
+```
+
+---
+
+### **2. Use Gradient Accumulation**
+
+* **What it does:** Simulate a larger batch size by accumulating gradients over multiple smaller batches before performing an optimizer step.
+* **Example:**
+
+```python
+accumulation_steps = 4
+optimizer.zero_grad()
+for i, batch in enumerate(train_loader):
+    outputs = model(batch)
+    loss = criterion(outputs, labels)
+    loss = loss / accumulation_steps  # normalize loss
+    loss.backward()
+    
+    if (i+1) % accumulation_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad()
+```
+
+---
+
+### **3. Mixed Precision / FP16 Training**
+
+* **What it does:** Uses 16-bit floating-point instead of 32-bit, cutting memory usage roughly by half.
+* **PyTorch Example with `torch.cuda.amp`:**
+
+```python
+scaler = torch.cuda.amp.GradScaler()
+for data, labels in train_loader:
+    optimizer.zero_grad()
+    with torch.cuda.amp.autocast():
+        outputs = model(data)
+        loss = criterion(outputs, labels)
+    scaler.scale(loss).backward()
+    scaler.step(optimizer)
+    scaler.update()
+```
+
+---
+
+### **4. Model Parallelism**
+
+* **What it does:** Split the model across multiple GPUs.
+* **Example:** First few layers on GPU0, last layers on GPU1.
+* **PyTorch:** `torch.nn.DataParallel` or `torch.nn.parallel.DistributedDataParallel`
+
+---
+
+### **5. Gradient Checkpointing / Activation Checkpointing**
+
+* **What it does:** Don’t store all intermediate activations; recompute some during backprop to save memory.
+* **PyTorch Example:**
+
+```python
+from torch.utils.checkpoint import checkpoint
+
+def forward_func(x):
+    return model.layer1(x)
+
+output = checkpoint(forward_func, input_tensor)
+```
+
+---
+
+### **6. Offloading / Swapping**
+
+* **What it does:** Move some model parameters or activations to CPU temporarily.
+* **Frameworks:** DeepSpeed, PyTorch FSDP (Fully Sharded Data Parallel)
+
+---
+
+### **7. Use Smaller Model / Pruning**
+
+* **What it does:** Reduce the number of parameters (e.g., use a distilled version of a model like `DistilBERT` instead of `BERT`).
+
+---
+
+💡 **Quick Rules of Thumb:**
+
+1. Always try **smaller batch size + mixed precision** first — simplest and effective.
+2. If still too large, consider **model parallelism or checkpointing**.
+3. For huge models (like LLMs), **DeepSpeed / FSDP / ZeRO** is usually necessary.
