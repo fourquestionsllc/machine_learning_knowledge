@@ -206,3 +206,195 @@ train_model -> register_model -> deploy_AB_test
 | 6. Promote         | Archive loser, keep winner    | MLflow `transition_model_version_stage` |
 
 ---
+
+You’re talking about extending your **A/B testing router** so that:
+
+* Sometimes you want **per-request randomization** (e.g., every API call gets a random model).
+* Sometimes you want **user-level assignment** (so the same user always sees the same model across sessions).
+
+Let’s design this step by step.
+
+---
+
+## 🧠 Goal
+
+Build an **A/B testing router** (e.g., FastAPI or Flask) that can flexibly choose routing logic:
+
+| Mode               | Description                 | Example                           |
+| ------------------ | --------------------------- | --------------------------------- |
+| `"request_random"` | Random model for every call | Each API hit is 50/50             |
+| `"user_hash"`      | Deterministic per user      | Same user → same model every time |
+
+---
+
+## ⚙️ Step 1: Extend Router Logic
+
+We’ll use a simple FastAPI router that supports both routing strategies via a config or environment variable.
+
+### Example Code
+
+```python
+from fastapi import FastAPI, Request
+import hashlib, os, random, requests, mlflow
+
+app = FastAPI()
+
+# Two MLflow serving endpoints
+MODEL_A_URL = "http://mlflow-v7:8080/invocations"
+MODEL_B_URL = "http://mlflow-v8:8080/invocations"
+
+# Choose routing mode: "request_random" or "user_hash"
+ROUTING_MODE = os.getenv("ROUTING_MODE", "user_hash")
+
+def choose_model(user_id=None):
+    """Return 'A' or 'B' depending on routing mode"""
+    if ROUTING_MODE == "request_random":
+        return "A" if random.random() < 0.5 else "B"
+
+    elif ROUTING_MODE == "user_hash":
+        if not user_id:
+            # fallback: random if no user id
+            return "A" if random.random() < 0.5 else "B"
+        # Hash user_id to ensure deterministic assignment
+        h = int(hashlib.sha256(str(user_id).encode()).hexdigest(), 16)
+        return "A" if h % 2 == 0 else "B"
+
+@app.post("/predict")
+async def predict(request: Request):
+    payload = await request.json()
+    user_id = payload.get("user_id")
+
+    group = choose_model(user_id)
+    model_url = MODEL_A_URL if group == "A" else MODEL_B_URL
+
+    # Call MLflow serving endpoint
+    response = requests.post(model_url, json=payload)
+    preds = response.json()
+
+    # Log routing + model version to MLflow
+    with mlflow.start_run(run_name="ab_inference", nested=True):
+        mlflow.log_param("routing_mode", ROUTING_MODE)
+        mlflow.log_param("group", group)
+        mlflow.log_param("user_id", user_id)
+    
+    return {"model_group": group, "predictions": preds}
+```
+
+---
+
+## 🪄 How It Works
+
+| Mode               | Logic                      | Effect                                                 |
+| ------------------ | -------------------------- | ------------------------------------------------------ |
+| `"request_random"` | `random.random()` per call | Each request gets A or B independently                 |
+| `"user_hash"`      | `hash(user_id) % 2`        | Same user ID always maps to same model (deterministic) |
+
+---
+
+## 🧩 Step 2: Ensure Deterministic User Assignment
+
+Hashing ensures that:
+
+* Same user always gets same model
+* Distribution stays roughly balanced
+* No need to store state in DB
+
+You can also change assignment ratio easily:
+
+```python
+# 70/30 split by hash
+return "A" if h % 10 < 7 else "B"
+```
+
+---
+
+## 🗂️ Step 3: Add Configurable Routing (Optional)
+
+If you want DS or Ops to switch routing logic dynamically without redeploying, use a config service or database flag.
+
+Example using environment variable:
+
+```bash
+export ROUTING_MODE=user_hash
+uvicorn router:app --host 0.0.0.0 --port 8080
+```
+
+Or dynamically via REST endpoint:
+
+```python
+@app.post("/set_mode")
+def set_mode(new_mode: str):
+    global ROUTING_MODE
+    if new_mode in ["request_random", "user_hash"]:
+        ROUTING_MODE = new_mode
+        return {"status": "ok", "new_mode": ROUTING_MODE}
+    return {"status": "error", "msg": "invalid mode"}
+```
+
+---
+
+## 📊 Step 4: Tracking User-Level Experiment Results
+
+Log user-level metrics back into MLflow (or another store).
+
+Example (later, when you get real outcomes):
+
+```python
+import mlflow
+
+def log_outcome(user_id, model_group, clicked):
+    with mlflow.start_run(run_name="ab_user_outcome", nested=True):
+        mlflow.log_param("user_id", user_id)
+        mlflow.log_param("group", model_group)
+        mlflow.log_metric("clicked", int(clicked))
+```
+
+Then, you can aggregate by group later to compute CTR, AUC, etc.
+
+---
+
+## 🧮 Step 5: Optional — Persistent Mapping (for Analytics)
+
+If you need to analyze assignment consistency or override user-group assignment:
+
+* Store user → group mapping in a database table or Redis.
+* Example schema:
+
+  ```sql
+  CREATE TABLE ab_assignments (
+      user_id VARCHAR(255),
+      model_group CHAR(1),
+      assigned_at TIMESTAMP
+  );
+  ```
+
+You can pre-assign users at experiment start if needed (e.g., for a stable test population).
+
+---
+
+## 🧠 Advanced Extensions
+
+| Feature                 | Approach                                               |
+| ----------------------- | ------------------------------------------------------ |
+| **Weighted assignment** | Random split 70/30 or 90/10 using thresholds           |
+| **Multi-variant test**  | More than 2 models (A/B/C/D) → hash % N                |
+| **Time-based rollout**  | Use timestamps to gradually ramp up                    |
+| **Sticky sessions**     | Use user_hash or session_id hashing                    |
+| **Dynamic config**      | Store routing rules in DynamoDB / Feature Flag service |
+
+---
+
+## ✅ Summary
+
+| Goal                   | Implementation                     |
+| ---------------------- | ---------------------------------- |
+| Random per request     | `random.random()`                  |
+| Same user → same model | `hash(user_id) % 2`                |
+| Switch between modes   | Config var or `/set_mode` endpoint |
+| Log all events         | MLflow `log_param` + `log_metric`  |
+| Rollout A/B safely     | Hash or weighted split logic       |
+
+---
+
+
+
