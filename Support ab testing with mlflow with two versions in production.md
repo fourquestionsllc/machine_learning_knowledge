@@ -396,5 +396,218 @@ You can pre-assign users at experiment start if needed (e.g., for a stable test 
 
 ---
 
+We’re talking about **enabling Data Scientists (DS)** to *self-deploy* and run **A/B test APIs** — while you (as MLOps) keep consistency, governance, and observability.
+
+Let’s build a **clear, practical workflow** for that. 👇
+
+---
+
+## 🧠 Goal
+
+Let DS:
+
+* Train models → log to MLflow
+* Propose new versions → register
+* Deploy two models for A/B testing
+* Automatically get an API endpoint
+* You (MLOps) control rollout & tracking
+
+---
+
+## 🏗️ 1. Define the A/B Deployment Architecture
+
+```text
+         +-------------------+
+         |  Frontend / Client |
+         +-------------------+
+                    |
+                    v
+        +---------------------------+
+        | A/B Router (MLOps Owned) |
+        +---------------------------+
+          /                       \
+         /                         \
++-------------------+     +-------------------+
+|  MLflow Model A   |     |  MLflow Model B   |
+| (v7)              |     | (v8)              |
++-------------------+     +-------------------+
+```
+
+The **A/B Router** is a lightweight API (e.g., FastAPI, Flask) that:
+
+* Receives inference requests
+* Randomly (or deterministically) routes to v7 or v8
+* Logs which model handled the call
+* Returns prediction results transparently
+
+---
+
+## 🧰 2. Use MLflow Model Registry to Manage Versions
+
+Data Scientists handle:
+
+```python
+import mlflow
+from mlflow.tracking import MlflowClient
+
+mlflow.set_tracking_uri("http://mlflow-server:5000")
+client = MlflowClient()
+
+# Register model
+model_uri = "runs:/<RUN_ID>/model"
+model_details = mlflow.register_model(model_uri, "hyatt_recommendation_model")
+
+# Move model to "Staging" (ready for A/B test)
+client.transition_model_version_stage(
+    name="hyatt_recommendation_model",
+    version=model_details.version,
+    stage="Staging"
+)
+```
+
+They only need to train → log → register.
+Your MLOps pipeline handles **deployment logic** automatically.
+
+---
+
+## ⚙️ 3. MLOps Deployment Pipeline
+
+Your side (MLOps) defines a **GitOps or CI/CD workflow**:
+
+### Example: GitHub Actions or Jenkins
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      model_name:
+      version_a:
+      version_b:
+
+jobs:
+  deploy-ab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy A/B API
+        run: |
+          python deploy_ab_api.py \
+            --model_name ${{ inputs.model_name }} \
+            --version_a ${{ inputs.version_a }} \
+            --version_b ${{ inputs.version_b }}
+```
+
+### `deploy_ab_api.py`
+
+```python
+import mlflow
+import os
+import json
+
+model_a = mlflow.pyfunc.get_model_version_download_uri("hyatt_recommendation_model", "7")
+model_b = mlflow.pyfunc.get_model_version_download_uri("hyatt_recommendation_model", "8")
+
+# generate config for router
+config = {
+  "model_a": model_a,
+  "model_b": model_b,
+  "routing_mode": "user_hash"
+}
+
+with open("ab_config.json", "w") as f:
+    json.dump(config, f)
+
+os.system("docker-compose up -d")  # starts A/B router + MLflow serving
+```
+
+Now DS can “request A/B test” via CI input or MLflow tag.
+
+---
+
+## 🧑‍🔬 4. Data Scientist Workflow (Simple & Safe)
+
+1. Train model in notebook
+2. `mlflow.log_model()`
+3. `mlflow.register_model()`
+4. Tag the model:
+
+   ```python
+   client.set_model_version_tag(
+       name="hyatt_recommendation_model",
+       version=8,
+       key="ab_test_candidate",
+       value="true"
+   )
+   ```
+5. MLOps pipeline detects tag → triggers A/B deployment
+6. DS gets API endpoint (e.g. `/predict`) and can start testing
+
+---
+
+## 🔁 5. Unified Inference API (FastAPI Example)
+
+Your **router service** exposes a single `/predict` endpoint.
+
+```python
+from fastapi import FastAPI, Request
+import os, random, requests
+
+app = FastAPI()
+
+MODEL_A_URL = os.getenv("MODEL_A_URL")
+MODEL_B_URL = os.getenv("MODEL_B_URL")
+ROUTING_MODE = os.getenv("ROUTING_MODE", "user_hash")
+
+@app.post("/predict")
+async def predict(request: Request):
+    data = await request.json()
+    user_id = data.get("user_id")
+    use_a = random.random() < 0.5 if ROUTING_MODE == "request_random" else hash(user_id) % 2 == 0
+    model_url = MODEL_A_URL if use_a else MODEL_B_URL
+
+    response = requests.post(model_url, json=data)
+    return {"model": "A" if use_a else "B", "prediction": response.json()}
+```
+
+Now both models are live, but hidden behind one endpoint.
+
+---
+
+## 🧩 6. Tracking & Reporting
+
+MLOps adds:
+
+* `mlflow.log_param("model", "A" or "B")` at inference
+* `mlflow.log_metric("accuracy", ...)` after offline validation
+* Combine inference logs + outcome metrics in dashboard (e.g., Superset, Grafana)
+
+---
+
+## ✅ 7. MVP Version (Minimum Viable Product)
+
+| Phase       | Capability                                                                           | Owner      |
+| ----------- | ------------------------------------------------------------------------------------ | ---------- |
+| **MVP**     | Deploy 2 models behind one router; random traffic split; MLflow registry integration | MLOps      |
+| **Phase 2** | Deterministic user hashing; config control; auto-deploy via tags                     | Shared     |
+| **Phase 3** | Dynamic rollout (e.g., 10% → 50% → 100%), real-time dashboards                       | MLOps      |
+| **Phase 4** | Online feedback loops, continuous retraining                                         | DS + MLOps |
+
+---
+
+## 🗣️ 8. How to *Propose It* to DS
+
+Frame it as **enablement**, not control.
+Sample pitch:
+
+> “We’ll handle deployment through MLflow, so you can focus on model performance.
+> When you’re ready to test a new version, just tag it as `ab_test_candidate=true`.
+> Our A/B router will automatically deploy it next to the current production model — same API, same payload.
+> You’ll get real traffic and metrics, and we’ll track results through MLflow.”
+
+This earns DS trust while enforcing consistency.
+
+---
+
+
+
 
 
