@@ -1,0 +1,186 @@
+Below is an **actual example of Amazon Bedrock AgentCore agent code** that shows how to:
+
+1. Build a simple agent using a Python agent framework (e.g., Strands Agents)
+2. Integrate **RAG retrieval** (via a knowledge base or external retriever pattern)
+3. Include **guardrails** to control safety/policy
+
+I’ll include code you can run locally with the AgentCore starter toolkit and then explain how **RAG + guardrails** fit into it.
+
+---
+
+## ✅ 1. Basic AgentCore Agent (Strands + AgentCore)
+
+This is the **baseline agent** that you’ll deploy in Bedrock AgentCore Runtime. It just takes a prompt and returns a response using a model behind Strands Agents.
+
+```python
+# agentcore_rag_guardrails_agent.py
+
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+from strands import Agent, Tool
+from strands.models import BedrockModel
+
+# 1) Initialize AgentCore entrypoint
+app = BedrockAgentCoreApp()
+
+# 2) Build your model with guardrail attached (optional)
+bedrock_model = BedrockModel(
+    model_id="us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+    # Example guardrail values from Bedrock console or API
+    guardrail_id="your-guardrail-id",
+    guardrail_version="your-guardrail-version"
+)
+
+# 3) Build Strands agent with the RAG retriever tool
+# “retriever” below is a semantic search tool you implement (e.g., through S3/Opensearch)
+class RetrieverTool(Tool):
+    def run(self, query: str) -> str:
+        # implement retrieval from your vectorstore here
+        # return top-k docs or a context string
+        return my_vector_search_function(query)
+
+# Add the tool into the agent
+tools = [
+    RetrieverTool(name="RAGRetriever")
+]
+
+agent = Agent(
+    model=bedrock_model,
+    tools=tools,
+    # Customize system prompt if needed
+    system_prompt="You are a helpful assistant using RAG retrieval and safety guardrails.",
+)
+
+# 4) The AgentCore entrypoint
+@app.entrypoint
+def invoke(payload):
+    user_prompt = payload.get("prompt", "")
+    
+    # Use retrieval first as context
+    # E.g., you call your retriever tool to get grounding documents
+    retrieved_context = agent.call_tool("RAGRetriever", user_prompt)
+
+    # Build combined prompt
+    prompt_with_context = f"""
+    Context:
+    {retrieved_context}
+
+    User: {user_prompt}
+    """
+
+    # Ask your agent to respond with context
+    result = agent(prompt_with_context)
+
+    return {"response": result.message}
+
+# 5) Start the agent runtime
+if __name__ == "__main__":
+    app.run()
+```
+
+### What’s Going On Here?
+
+* **BedrockAgentCoreApp** is the entrypoint that AgentCore Runtime will host. ([AWS Documentation][1])
+* **BedrockModel** wraps an LLM from Bedrock with attached guardrails (filtering/policy enforcement). ([DEV Community][2])
+* **Strands Agents** orchestrates the RAG tool + model prompting logic. ([GitHub][3])
+
+---
+
+## 🎯 2. RAG Retriever “Tool”
+
+This `RetrieverTool` can be backed by:
+
+* **S3 + S3Vectors** (Amazon Bedrock KB adapters)
+* **OpenSearch Serverless Vector Search**
+* **Custom Vectorstore (FAISS, Pinecone, etc.)**
+
+The idea is:
+
+```python
+def my_vector_search_function(query: str) -> str:
+    """
+    1) Compute embedding for query
+    2) Search your vector database for top-k
+    3) Return a combined context string
+    """
+    # This is a placeholder — plug in your real retrieval stack
+    docs = vector_search(query)
+    context_text = "\n\n".join(doc.text for doc in docs)
+    return context_text
+```
+
+This function fetches relevant context so your agent is grounded in real RAG results — very helpful for large code repos or document corpora.
+
+---
+
+## 🛡 3. Attaching Guardrails
+
+`guardrail_id` and `guardrail_version` in the `BedrockModel` constructor ensure that **Bedrock Guardrails policies** are applied to:
+
+✔ Input moderation
+✔ Output safety
+✔ Domain-specific filtering
+
+You create the guardrail (usually via the Bedrock console or API) and then pass the IDs here. Guardrails will then enforce your policy at **model invocation time**. ([AWS Documentation][4])
+
+```python
+bedrock_model = BedrockModel(
+    model_id="us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+    guardrail_id="your-guardrail-id",
+    guardrail_version="your-guardrail-version"
+)
+```
+
+---
+
+## 🚀 4. Deploy to AWS Bedrock AgentCore Runtime
+
+### Local Dev
+
+```bash
+pip install bedrock-agentcore strands-agents bedrock-agentcore-starter-toolkit
+agentcore create  # choose Strands Agents when prompted
+agentcore dev
+```
+
+### Deploy to Production Runtime
+
+```bash
+agentcore configure -e agentcore_rag_guardrails_agent.py
+agentcore launch
+agentcore invoke '{"prompt":"Explain how to refactor this code..."}'
+```
+
+AgentCore packages your code, assigns a runtime, and sets up CloudWatch logs — all managed and secure. ([AWS Documentation][5])
+
+---
+
+## 📌 Notes & Best Practices
+
+✅ **Keep RAG context size limited** before sending to the model.
+✅ **Monitor metrics and guardrail violations** in CloudWatch for safety insights.
+✅ **Use vector stores with metadata filters** to narrow your retrieval scope.
+✅ **Test locally with `agentcore dev`** extensively before production deploy. ([AWS Documentation][5])
+
+---
+
+## 📌 Summary
+
+| Feature              | How It’s Done                            |
+| -------------------- | ---------------------------------------- |
+| AgentCore entrypoint | `BedrockAgentCoreApp()`                  |
+| RAG retrieval        | Custom retriever tool + vector search    |
+| Guardrails           | Attached to model via `guardrail_id`     |
+| Deployment           | `agentcore launch` + AWS managed runtime |
+
+---
+
+If you want a **full reference starter repository** example that includes **vector search + tools + deployment scripts**, the **Amazon Bedrock AgentCore Samples repo** on GitHub is the best place to explore next — it includes RAG and tool integration patterns: [https://github.com/awslabs/amazon-bedrock-agentcore-samples](https://github.com/awslabs/amazon-bedrock-agentcore-samples) ([GitHub][6])
+
+---
+
+[1]: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-toolkit.html?utm_source=chatgpt.com "Get started with Amazon Bedrock AgentCore - Amazon Bedrock AgentCore"
+[2]: https://dev.to/aws-builders/add-guardrails-to-your-strands-agent-in-zero-time-with-amazon-bedrock-guardrails-1gam?utm_source=chatgpt.com "Add Guardrails to Strands Agent w/ Amazon Bedrock"
+[3]: https://github.com/aws-samples/sample-strands-agentcore-starter?utm_source=chatgpt.com "aws-samples/sample-strands-agentcore-starter"
+[4]: https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html?utm_source=chatgpt.com "Detect & Filter Harmful Content: Amazon Bedrock Guardrails"
+[5]: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-toolkit.html?utm_source=chatgpt.com "Get started with the Amazon Bedrock AgentCore starter toolkit - Amazon Bedrock AgentCore"
+[6]: https://github.com/awslabs/amazon-bedrock-agentcore-samples?utm_source=chatgpt.com "awslabs/amazon-bedrock-agentcore-samples"
