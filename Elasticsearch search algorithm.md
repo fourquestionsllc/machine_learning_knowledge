@@ -47,7 +47,8 @@ At a high level, the search works like this:
 Elasticsearch ranks documents using **BM25 (Best Matching 25) algorithm**, which is a modern version of TF-IDF.
 
 **BM25 Formula (simplified)**:
-$$[ \text{score}(q,d) = \sum_{t \in q} \frac{f(t,d) \cdot (k+1)}{f(t,d) + k \cdot (1 - b + b \cdot \frac{|d|}{avgdl})} \cdot \log \frac{N - n_t + 0.5}{n_t + 0.5} ]$$
+
+$$\text{score}(q,d) = \sum_{t \in q} \frac{f(t,d) \cdot (k+1)}{f(t,d) + k \cdot (1 - b + b \cdot \frac{|d|}{avgdl})} \cdot \log \frac{N - n_t + 0.5}{n_t + 0.5} $$
 
 Where:
 
