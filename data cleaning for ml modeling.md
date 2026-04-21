@@ -1,3 +1,65 @@
+# 📊 Column-Level Data Cleaning Table
+
+| **Issue Type**                          | **How to Identify (Check Steps)**                                                    | **What to Do (Handling Steps)**                                                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1. Column Type Identification**       | - `df['col'].dtype`  <br> - `df['col'].head()`                                       | - Classify as: numerical, categorical, text, date <br> - Decide processing path                                                                  |
+| **2. Missing Values**                   | - `df['col'].isna().sum()` <br> - `% missing = mean()`                               | - Numeric → fill with median/mean <br> - Categorical → fill with mode <br> - High missing (>40%) → drop column <br> - Target missing → drop rows |
+| **3. Data Type Issues**                 | - `df['col'].apply(type).value_counts()` <br> - Check for strings in numeric columns | - Convert types (`astype`) <br> - Remove formatting (`,` `%`) <br> - Convert dates (`pd.to_datetime`)                                            |
+| **4. Categorical Inconsistencies**      | - `df['col'].value_counts()` <br> - Look for case/format differences                 | - Lowercase + strip <br> - Map values (e.g., `M → male`)                                                                                         |
+| **5. Invalid Values**                   | - Define valid range <br> - Filter: `df[df['col'] < min]`                            | - Replace with NaN <br> - Remove rows <br> - Cap values if needed                                                                                |
+| **6. Outliers (Numerical)**             | - `df['col'].describe()` <br> - IQR method <br> - Boxplot                            | - Remove extreme rows <br> - Cap using `np.clip()` <br> - Apply log transform                                                                    |
+| **7. Duplicates (Row-level impact)**    | - `df.duplicated().sum()`                                                            | - Remove duplicates (`drop_duplicates`)                                                                                                          |
+| **8. Text Formatting Issues**           | - `.str.strip()` <br> - `.str.len()` <br> - Look for empty/whitespace                | - Strip whitespace <br> - Normalize spacing <br> - Fix encoding if needed                                                                        |
+| **9. ID / Irrelevant Columns**          | - `df['col'].nunique() ≈ len(df)` <br> - Column name contains `id`, `hash`           | - Drop column <br> ⚠️ Keep only if needed for joins                                                                                              |
+| **10. Metadata / Noise Columns**        | - Names like `timestamp`, `source`, `tracking`                                       | - Drop unless doing time-series analysis                                                                                                         |
+| **11. Data Leakage Columns ⚠️**         | - Highly correlated with target <br> - Contains future info                          | - Drop immediately before modeling                                                                                                               |
+| **12. Constant / Low Variance Columns** | - `df['col'].nunique() == 1`                                                         | - Drop column                                                                                                                                    |
+| **13. High Cardinality Categorical**    | - `df['col'].nunique()` large                                                        | - Use encoding (target/embedding) <br> - Or drop if not useful                                                                                   |
+| **14. Skewed Numerical Data**           | - Distribution check (`hist`, `describe`)                                            | - Apply log transform (`log1p`)                                                                                                                  |
+| **15. Feature Scaling Need**            | - Large range differences                                                            | - Apply StandardScaler / MinMaxScaler                                                                                                            |
+| **16. Text Data (NLP columns)**         | - Long strings <br> - Free text                                                      | - Clean text (lowercase, remove noise) <br> - Vectorize (TF-IDF)                                                                                 |
+
+---
+
+# 🧠 Quick Decision Flow (Per Column)
+
+| **Question**               | **Action**         |
+| -------------------------- | ------------------ |
+| Is it an ID or irrelevant? | ➝ DROP             |
+| Is it leakage?             | ➝ DROP immediately |
+| Missing values?            | ➝ IMPUTE or DROP   |
+| Wrong type?                | ➝ CONVERT          |
+| Categorical messy?         | ➝ STANDARDIZE      |
+| Invalid values?            | ➝ FIX / REMOVE     |
+| Outliers?                  | ➝ HANDLE           |
+| Ready?                     | ➝ ENCODE / SCALE   |
+
+---
+
+# ✅ Example (Applied to One Column)
+
+| Step                    | Result                                        |
+| ----------------------- | --------------------------------------------- |
+| Column: `cocoa_percent` | `"70%"`, `"85%"`, `"120%"`                    |
+| Issue Found             | Type issue + invalid values                   |
+| Fix                     | Remove `%`, convert to float, cap/remove >100 |
+| Final                   | Clean numeric feature ready for modeling      |
+
+---
+
+# 🚀 How to Use This Table
+
+For **each column**, go row by row:
+
+1. Run the **check step**
+2. Identify the issue
+3. Apply the **handling step**
+4. Move to next issue
+
+
+
+
+
 # 📘 Data Cleaning & Preprocessing Handbook for ML
 
 ---
