@@ -27,7 +27,7 @@ Let's walk through a **simple AutoGen conversation** between a user and a code a
 #### 🔧 Step 1: Install AutoGen
 
 ```bash
-pip install pyautogen
+pip install ag2
 ```
 
 #### 🧱 Step 2: Define Agents and Memory
