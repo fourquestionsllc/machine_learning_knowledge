@@ -1,3 +1,575 @@
+If we **focus only on Vertex AI + Gemini**, the cleanest way to understand the architecture is to separate **what Gemini does** from **what Vertex AI provides around Gemini**.
+
+## 1. The core idea
+
+Think of it as:
+
+```text
+                    Your Agent Application
+                           │
+                           ▼
+                      Vertex AI
+                           │
+              ┌────────────┼────────────┐
+              ▼            ▼            ▼
+           Gemini        RAG          Tools
+           Models      / Search       / Data
+              │            │            │
+              └────────────┼────────────┘
+                           ▼
+                       Agent
+```
+
+**Gemini = the intelligence/model**
+
+**Vertex AI = the Google Cloud platform you use to build, connect, deploy, evaluate, and operate that intelligence.**
+
+---
+
+# 2. Where Gemini fits
+
+Gemini is the model that performs things such as:
+
+* understanding user requests
+* reasoning
+* generating text
+* summarizing
+* extracting information
+* generating structured JSON
+* multimodal understanding
+* deciding which tool to call
+* synthesizing RAG results
+* generating code
+
+For example:
+
+```python
+from google import genai
+
+client = genai.Client(
+    vertexai=True,
+    project="my-project",
+    location="us-central1"
+)
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents="Explain our revenue trend in Europe."
+)
+
+print(response.text)
+```
+
+Here:
+
+```text
+Your Python application
+        │
+        ▼
+     Vertex AI
+        │
+        ▼
+     Gemini
+        │
+        ▼
+     Response
+```
+
+You are using **Gemini through Vertex AI**.
+
+---
+
+# 3. Vertex AI gives you much more than Gemini
+
+For an enterprise GenAI application, Vertex AI can provide:
+
+```text
+                       Vertex AI
+                           │
+ ┌─────────────┬───────────┼────────────┬──────────────┐
+ ▼             ▼           ▼            ▼              ▼
+Gemini       Embeddings    RAG       Vector Search   Agents
+ │             │           │            │              │
+ ▼             ▼           ▼            ▼              ▼
+LLM          Vectors     Retrieval   Similarity     ADK/Runtime
+```
+
+So your application might use:
+
+```text
+Gemini
+  +
+Vertex AI Embeddings
+  +
+Vertex AI Vector Search
+  +
+Cloud Storage
+  +
+ADK
+  =
+Enterprise RAG Agent
+```
+
+---
+
+# 4. Vertex AI + Gemini for RAG
+
+This is probably the most important pattern for you.
+
+Suppose you have:
+
+```text
+100,000 PDFs
+DOCX
+Financial reports
+Policies
+Contracts
+```
+
+You don't put all of those documents directly into Gemini.
+
+Instead:
+
+```text
+Documents
+    │
+    ▼
+Cloud Storage
+    │
+    ▼
+Chunk documents
+    │
+    ▼
+Gemini Embedding Model
+    │
+    ▼
+Vectors
+    │
+    ▼
+Vertex AI Vector Search
+```
+
+Then at query time:
+
+```text
+User:
+"What was Citi's European revenue?"
+
+             │
+             ▼
+       Gemini / Agent
+             │
+             ▼
+       Create query embedding
+             │
+             ▼
+    Vertex AI Vector Search
+             │
+             ▼
+     Relevant document chunks
+             │
+             ▼
+           Gemini
+             │
+             ▼
+       Final answer
+```
+
+This is the fundamental **Vertex AI + Gemini RAG architecture**.
+
+---
+
+# 5. Vertex AI RAG Engine
+
+Instead of implementing every RAG component yourself, you can use Google's managed RAG capabilities.
+
+Conceptually:
+
+```text
+                 Vertex AI RAG
+                      │
+       ┌──────────────┼──────────────┐
+       ▼              ▼              ▼
+   Ingestion       Retrieval       Context
+       │              │              │
+       ▼              ▼              ▼
+ Documents        Vector Search     Gemini
+```
+
+This means your application can focus more on the agent/business logic rather than building every retrieval component from scratch.
+
+---
+
+# 6. Gemini + Vertex AI Agent Development
+
+Now add an agent.
+
+Instead of:
+
+```text
+User → Gemini → Answer
+```
+
+you have:
+
+```text
+User
+ │
+ ▼
+Agent
+ │
+ ▼
+Gemini
+ │
+ ├── Search documents
+ ├── Query database
+ ├── Call API
+ ├── Calculate
+ └── Ask another agent
+ │
+ ▼
+Gemini
+ │
+ ▼
+Answer
+```
+
+This is where **ADK** comes in.
+
+ADK is the development framework you use to implement the agent logic.
+
+So:
+
+```text
+                 Vertex AI
+                    │
+              ┌─────┴─────┐
+              ▼           ▼
+           Gemini        ADK
+              │           │
+              │           ├── Tools
+              │           ├── Workflow
+              │           ├── Agents
+              │           └── MCP
+              │
+              └─────┬─────┘
+                    ▼
+               AI Agent
+```
+
+---
+
+# 7. Local development
+
+You can develop the ADK agent on your laptop while using Gemini through Vertex AI.
+
+For example:
+
+```text
+             Developer Laptop
+                    │
+              VS Code / IDE
+                    │
+                    ▼
+                Python
+                    │
+                    ▼
+                  ADK
+                    │
+                    ▼
+               Vertex AI
+                    │
+                    ▼
+                 Gemini
+```
+
+Your local code could be:
+
+```python
+from google.adk.agents import Agent
+
+root_agent = Agent(
+    name="financial_agent",
+    model="gemini-2.5-flash",
+    instruction="""
+    You are a financial research agent.
+    Use available tools to answer questions.
+    """
+)
+```
+
+The agent is running locally, but the model is Gemini accessed through Google Cloud.
+
+---
+
+# 8. Then add Vertex AI data services
+
+Now your local agent can use Google Cloud services:
+
+```text
+                    ADK Agent
+                        │
+        ┌───────────────┼────────────────┐
+        ▼               ▼                ▼
+     Gemini          RAG/Search        BigQuery
+        │               │                │
+        ▼               ▼                ▼
+   Reasoning       Documents          SQL Data
+```
+
+This is a very practical enterprise architecture.
+
+For example:
+
+> "Compare Citi's revenue in Europe and Asia using the annual reports and database."
+
+The agent might do:
+
+```text
+1. Gemini understands question
+             ↓
+2. RAG searches annual reports
+             ↓
+3. BigQuery retrieves structured metrics
+             ↓
+4. Gemini compares results
+             ↓
+5. Gemini generates answer
+```
+
+---
+
+# 9. Vertex AI for embeddings
+
+Gemini isn't only used for generation.
+
+For RAG, you also need **embedding models**.
+
+```text
+Document:
+"Citi revenue increased in Europe..."
+
+             │
+             ▼
+     Vertex AI Embedding
+             │
+             ▼
+[0.012, -0.231, 0.882, ...]
+```
+
+Store that vector in:
+
+**Vertex AI Vector Search**
+
+Then:
+
+```text
+User question
+      │
+      ▼
+Embedding
+      │
+      ▼
+Vector Search
+      │
+      ▼
+Similar documents
+```
+
+Then Gemini uses those documents to formulate the answer.
+
+---
+
+# 10. Vertex AI for grounding
+
+This is another important idea.
+
+You don't want Gemini to answer enterprise questions purely from its pretrained knowledge.
+
+Instead:
+
+```text
+                  Gemini
+                    │
+          ┌─────────┴─────────┐
+          │                   │
+     Model knowledge     Enterprise data
+                              │
+                         Vertex AI RAG
+                              │
+                              ▼
+                         Grounded answer
+```
+
+For enterprise applications, the second path is usually more important.
+
+For example:
+
+```text
+"What is our company's 2025 revenue?"
+```
+
+Gemini shouldn't guess.
+
+It should retrieve your company's actual information and answer from it.
+
+---
+
+# 11. Vertex AI for evaluation
+
+After building the agent, Vertex AI can be part of your evaluation lifecycle.
+
+You can evaluate:
+
+```text
+                    Agent
+                      │
+              ┌───────┼────────┐
+              ▼       ▼        ▼
+          Accuracy  Grounding  Safety
+              │       │        │
+              └───────┼────────┘
+                      ▼
+                  Evaluation
+```
+
+For RAG specifically, important measurements include:
+
+* retrieval quality
+* groundedness
+* answer relevance
+* citation quality
+* hallucination rate
+
+For agents:
+
+* tool selection
+* tool arguments
+* task completion
+* reasoning trajectory
+* latency
+* token usage
+
+---
+
+# 12. Vertex AI for production
+
+Once the local agent works:
+
+```text
+LOCAL
+  │
+  │ ADK + Gemini
+  ▼
+TEST
+  │
+  ▼
+EVALUATE
+  │
+  ▼
+DEPLOY
+  │
+  ▼
+VERTEX AI / AGENT RUNTIME
+  │
+  ▼
+PRODUCTION
+```
+
+Now Google Cloud manages the production environment around your agent.
+
+You can have:
+
+```text
+                    Production
+                       Agent
+                         │
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+       Gemini          RAG            Tools
+          │              │              │
+          ▼              ▼              ▼
+      Vertex AI      Vector Search   Cloud APIs
+```
+
+---
+
+# 13. The simplest mental model
+
+For your resume/interview preparation, I would memorize this:
+
+### Gemini
+
+**"What thinks and generates."**
+
+```text
+Reason
+Generate
+Summarize
+Extract
+Understand
+Decide
+```
+
+### Vertex AI
+
+**"The Google Cloud platform around the model."**
+
+```text
+Model access
+Embeddings
+RAG
+Vector Search
+Agent development
+Evaluation
+Deployment
+Monitoring
+Governance
+```
+
+### ADK
+
+**"How I code the agent."**
+
+```text
+Agent
+Tools
+Workflow
+Multi-agent
+MCP
+State
+Orchestration
+```
+
+So:
+
+```text
+                 Vertex AI
+                    │
+        ┌───────────┴───────────┐
+        │                       │
+      Gemini                   ADK
+        │                       │
+   Intelligence          Agent logic
+        │                       │
+        └───────────┬───────────┘
+                    │
+                    ▼
+               AI Agent
+                    │
+       ┌────────────┼────────────┐
+       ▼            ▼            ▼
+      RAG          Tools       Data
+       │
+       ▼
+Vector Search / Enterprise Data
+```
+
+**For a GCP GenAI engineer, this is the important story:** you develop an agent with **ADK**, use **Gemini through Vertex AI** as the reasoning/generation engine, use **Vertex AI RAG/Vector Search/embeddings** for enterprise knowledge, then evaluate and deploy the agent on Google's managed infrastructure.
+
+-----------
+
+
 **Google ADK (Agent Development Kit)** is Google's framework for building AI agents that can reason with an LLM, call tools, maintain state, delegate to other agents, use RAG, and eventually deploy to Google Cloud.
 
 The easiest way to understand ADK is:
