@@ -1,3 +1,216 @@
+If you're comparing **Databricks/Spark DataFrame**, **Pandas DataFrame**, and **Pandas Series**, the key difference is **scale and execution model**.
+
+| Feature         | Databricks / Spark DataFrame | Pandas DataFrame      | Pandas Series         |
+| --------------- | ---------------------------- | --------------------- | --------------------- |
+| Library         | PySpark                      | Pandas                | Pandas                |
+| Data size       | GB → TB → PB                 | MB → several GB*      | MB → several GB*      |
+| Execution       | Distributed                  | Single machine        | Single machine        |
+| Data location   | Cluster memory/storage       | Local RAM             | Local RAM             |
+| Parallelism     | Many workers/cores           | Mostly single machine | Mostly single machine |
+| Lazy execution  | ✅ Yes                        | ❌ No                  | ❌ No                  |
+| SQL support     | ✅ Strong                     | Limited               | ❌                     |
+| Fault tolerance | ✅                            | ❌                     | ❌                     |
+| Best for        | Big data/ETL                 | Data analysis         | One-dimensional data  |
+| Typical use     | Production pipelines         | EDA/modeling          | Columns/labels        |
+
+*Pandas can work with larger-than-RAM datasets using special techniques, but a normal Pandas DataFrame fundamentally relies on local machine resources.
+
+### 1. Spark DataFrame
+
+In Databricks, you commonly use:
+
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.getOrCreate()
+
+df = spark.read.parquet("/data/sales")
+
+df_filtered = df.filter(df.amount > 1000)
+
+df_grouped = (
+    df_filtered
+    .groupBy("region")
+    .sum("amount")
+)
+
+df_grouped.show()
+```
+
+The important point is that `df` can be distributed across many Spark workers.
+
+For example:
+
+```text
+             Spark DataFrame
+                    |
+        +-----------+-----------+
+        |           |           |
+     Worker 1    Worker 2    Worker 3
+        |           |           |
+     Partition    Partition    Partition
+```
+
+Spark doesn't necessarily load the entire dataset into the memory of one machine.
+
+---
+
+### 2. Pandas DataFrame
+
+Pandas is much simpler:
+
+```python
+import pandas as pd
+
+df = pd.read_csv("sales.csv")
+
+df_filtered = df[df["amount"] > 1000]
+
+df_grouped = (
+    df_filtered
+    .groupby("region")["amount"]
+    .sum()
+)
+```
+
+The data is generally held in the memory of the machine running Python.
+
+So if you have:
+
+```text
+sales.csv
+   ↓
+Pandas
+   ↓
+RAM of one machine
+```
+
+A 500 GB dataset is obviously a problem for a normal Pandas workflow.
+
+---
+
+### 3. Pandas Series
+
+A **Series is basically one-dimensional Pandas data**.
+
+```python
+df = pd.DataFrame({
+    "name": ["A", "B", "C"],
+    "age": [20, 30, 40]
+})
+
+ages = df["age"]
+```
+
+`ages` is a Series:
+
+```text
+0    20
+1    30
+2    40
+Name: age
+```
+
+Conceptually:
+
+```text
+Pandas DataFrame
++------+-----+
+| name | age |
++------+-----+
+| A    | 20  |
+| B    | 30  |
+| C    | 40  |
++------+-----+
+
+        ↓ select column
+
+Pandas Series
+
+0    20
+1    30
+2    40
+```
+
+### The most important distinction
+
+Think of it this way:
+
+```text
+Pandas Series
+    ↓
+one-dimensional
+
+Pandas DataFrame
+    ↓
+two-dimensional
+    ↓
+one machine
+
+Spark DataFrame
+    ↓
+two-dimensional
+    ↓
+distributed across cluster
+    ↓
+big data
+```
+
+### Spark → Pandas
+
+A very common Databricks pattern is:
+
+```python
+spark_df = spark.read.parquet("/data/sales")
+
+# Convert Spark DataFrame to Pandas
+pandas_df = spark_df.toPandas()
+```
+
+**Be careful:** `toPandas()` collects the entire Spark DataFrame onto the driver machine.
+
+For example:
+
+```text
+1 TB Spark DataFrame
+       ↓
+    toPandas()
+       ↓
+Driver machine
+       ↓
+    1 TB RAM needed
+       ↓
+      💥
+```
+
+So you normally filter/aggregate first:
+
+```python
+pandas_df = (
+    spark_df
+    .filter("amount > 1000")
+    .groupBy("region")
+    .sum("amount")
+    .toPandas()
+)
+```
+
+This is much safer.
+
+### Databricks rule of thumb
+
+For your **GenAI/ML engineering work**, a useful mental model is:
+
+* **Spark DataFrame** → ingesting/processing millions or billions of records
+* **Pandas DataFrame** → EDA, feature analysis, smaller datasets, model preparation
+* **Pandas Series** → individual columns/features
+* **Databricks + Spark** → distributed ETL/data engineering
+* **`toPandas()`** → use only when the resulting dataset is small enough for driver memory
+
+Also, **Spark DataFrame and Pandas DataFrame look very similar syntactically**, but their execution models are fundamentally different.
+
+---------
+
 When comparing **PySpark** and **Pandas**, both are powerful tools for data manipulation and analysis, but they are suited to different types of tasks and data scales. Here’s a detailed comparison of **PySpark** vs **Pandas**:
 
 ---
