@@ -8,7 +8,24 @@ An optimizer updates model parameters to reduce a loss. **Backpropagation comput
 
 Let $\theta_t$ be the parameters before step $t$, $g_t = \nabla_{\theta}\mathcal{L}_t(\theta_t)$ the current minibatch gradient, and $\eta_t$ the learning rate. A minibatch is a small subset of training examples.
 
-**Momentum** remembers gradient direction to smooth noisy updates. **Adaptive scaling** gives each parameter its own effective step size. An exponential moving average (EMA) blends old and new values, giving greater weight to recent observations.
+## Important elements and settings
+
+Think of training as walking downhill on a landscape whose height is the loss.
+
+| Element | Meaning | Setting / effect |
+| --- | --- | --- |
+| **Gradient** | Local uphill direction and steepness; computed by backpropagation. | An input to every optimizer, not a setting you choose. Updates generally move against it. |
+| **Learning rate** | Overall step size. | $\eta$: too large can cause instability; too small can slow learning. |
+| **Momentum** | Remembers past gradient directions, smoothing noise and reducing zigzagging. | SGD's $\mu$ or Adam's $\beta_1$: larger values retain direction longer but react more slowly. Their update conventions differ. |
+| **Adaptive scaling** | Uses gradient history to adjust the effective step size separately for each parameter. | Adam's $\beta_2$ or RMSprop's $\rho$ controls squared-gradient memory; larger values give steadier but slower-changing scaling. |
+| **Weight decay** | Encourages smaller weights to help control overfitting. | $\lambda$: stronger decay means stronger regularization. Its interaction with gradients depends on the implementation. |
+| **Bias correction** | Compensates for moving averages starting at zero, especially in early steps. | Built into Adam and its variants; normally no separate knob. This is unrelated to a neural network's bias parameters. |
+| **Epsilon** | Small denominator constant for numerical stability. | $\epsilon$: prevents division by zero and also affects scaling when gradients are very small. |
+| **Learning-rate schedule** | Changes the learning rate over training. | Warmup raises it initially; decay lowers it later. A schedule works alongside an optimizer. |
+
+An **exponential moving average (EMA)** blends old and new values, favoring recent observations. Its generic form is $a_t=\beta a_{t-1}+(1-\beta)x_t$. A larger $\beta$ means longer memory. For example, $0.9$ remembers roughly 10 steps and $0.999$ roughly 1,000, using the approximation $1/(1-\beta)$.
+
+**What you choose vs. what is computed:** Learning rate, memory coefficients, weight decay, epsilon, and the schedule are hyperparameters. Gradients, moving-average states, adaptive scaling factors, and bias corrections are computed during training.
 
 ## The eight optimizers
 
@@ -22,6 +39,26 @@ Let $\theta_t$ be the parameters before step $t$, $g_t = \nabla_{\theta}\mathcal
 | **6. [AdamW](https://arxiv.org/abs/1711.05101)** — Adam with decoupled weight decay | Performs Adam's update and separately shrinks parameters toward zero. | Separates regularization from gradient scaling. Unlike adding an L2 penalty to conventional Adam's loss, decay does not enter the moment estimates. |
 | **7. [Adamax](https://keras.io/api/optimizers/adamax/)** | Keeps Adam's gradient EMA but replaces its root-mean-square denominator with an exponentially weighted maximum absolute gradient. | Uses an infinity-norm-based scale. An alternative adaptive scaling rule, with no universal advantage over Adam. |
 | **8. [Nadam](https://keras.io/api/optimizers/Nadam/)** — Nesterov-accelerated Adam | Combines Adam's adaptive scaling with Nesterov-style momentum. | Changes Adam's direction update to include an anticipatory correction; does not inherently add AdamW's decoupled decay. |
+
+## Compare four common choices
+
+SGD with momentum, RMSprop, Adam, and AdamW are four prominent choices from this reference; this is not a measured top-four ranking. The comparison uses ordinary momentum SGD, uncentered RMSprop, conventional Adam, and AdamW.
+
+| Element | SGD + momentum | RMSprop | Adam | AdamW |
+| --- | --- | --- | --- | --- |
+| **Gradient** | Current minibatch gradient | Same | Same | Same |
+| **Learning rate** | One global rate; no adaptive scaling | Global rate plus per-parameter scaling | Global rate plus per-parameter scaling | Same as Adam |
+| **Direction memory** | Momentum $\mu$ | Optional momentum | Gradient EMA, $\beta_1$ | Same as Adam |
+| **Scale memory** | None | Squared-gradient EMA, $\rho$ (PyTorch: `alpha`) | Squared-gradient EMA, $\beta_2$ | Same as Adam |
+| **Bias correction** | No Adam-style correction | No Adam-style correction | Corrects both EMAs | Same as Adam |
+| **Epsilon** | Not needed in the basic update | Stabilizes denominator | Stabilizes denominator | Same as Adam |
+| **Weight decay** | Commonly coupled as an L2 gradient term | Commonly coupled as an L2 gradient term | Conventional coupled L2 changes both moment estimates | Decoupled shrinkage leaves moment estimates unchanged |
+| **Schedule** | Supported; often important | Supported | Supported | Supported |
+| **History per parameter** | 1 value | 1; 2 with momentum | 2 values | 2 values |
+
+**Implementation note:** The decay row follows the usual [PyTorch SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html), [RMSprop](https://docs.pytorch.org/docs/stable/generated/torch.optim.RMSprop.html), [Adam](https://docs.pytorch.org/docs/stable/generated/torch.optim.Adam.html), and [AdamW](https://docs.pytorch.org/docs/stable/generated/torch.optim.AdamW.html) conventions. Libraries can offer other decay modes; PyTorch Adam can also enable decoupled decay. State counts exclude parameters, gradients, and temporary buffers.
+
+**AdamW in five parts:** $\eta$ controls overall step size; $\beta_1$ controls direction memory; $\beta_2$ controls scale memory; $\lambda$ controls weight shrinkage; $\epsilon$ stabilizes division. Tune learning rate and weight decay first, then investigate the other settings if needed.
 
 ## Key equations
 
