@@ -1,4 +1,4 @@
-# Distributed Training: Interview Cheat Sheet
+# Deep Learning Distributed Training and Inference
 
 **DDP replicates; FSDP and DeepSpeed ZeRO shard; Ray orchestrates.**
 
