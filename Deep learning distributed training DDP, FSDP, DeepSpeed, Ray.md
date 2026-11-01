@@ -1,4 +1,4 @@
-# Distributed Training: Interview Cheat Sheet
+# Deep Learning Distributed Training using DDP, FSDP, DeepSpeed, Ray
 
 ## Start here: what problem are we solving?
 
