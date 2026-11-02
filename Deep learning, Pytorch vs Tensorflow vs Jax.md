@@ -89,6 +89,72 @@ params = optax.apply_updates(params, updates)
 
 JAX code commonly passes parameters and optimizer state explicitly. `jax.grad` computes derivatives, `jax.jit` can compile functions, and `jax.vmap` can vectorize computations. Optax is a commonly used optimizer library. The exact code depends on the model library, such as Flax or another JAX-compatible library.
 
+### JAX's Four Core Functions
+
+The four core functions of JAX are:
+
+1. **Compilation** — `jax.jit`: compiles a function for efficient execution.
+2. **Automatic differentiation** — `jax.grad`: computes gradients automatically.
+3. **Automatic vectorization** — `jax.vmap`: transforms a function for a single example into a function that processes a batch.
+4. **Parallelization across devices** — `jax.pmap`: distributes mapped computations across multiple devices, such as GPUs or TPU cores.
+
+JAX is often introduced through four core transformations: `grad`, `jit`, `vmap`, and `pmap`. Each takes a function and returns a transformed function, so you can combine differentiation, compilation, batching, and device parallelism.
+
+| Function | Purpose | Typical use |
+|---|---|---|
+| `jax.grad(f)` | Returns a function that computes gradients of a scalar-valued function with respect to its inputs; by default, the first argument | Differentiate a loss with respect to model parameters |
+| `jax.jit(f)` | Traces and compiles a function for efficient execution on supported CPUs, GPUs, or TPUs | Compile a repeatedly executed training step |
+| `jax.vmap(f)` | Adds batching by mapping a function over array axes | Apply a single-example function to an entire batch |
+| `jax.pmap(f)` | Maps replicas of a computation across devices | Run data-parallel computations, with collectives when replicas need to communicate |
+
+#### Small examples
+
+```python
+import jax
+import jax.numpy as jnp
+
+# 1. grad: differentiate f(x) = x^2.
+def square(x):
+    return x ** 2
+
+derivative = jax.grad(square)
+print(derivative(3.0))                    # 6.0
+
+# 2. jit: compile the function; the first call includes compilation.
+compiled_square = jax.jit(square)
+print(compiled_square(3.0))               # 9.0
+
+# 3. vmap: apply the function across a batch axis.
+batched_square = jax.vmap(square)
+print(batched_square(jnp.array([1., 2., 3.])))  # [1., 4., 9.]
+
+# 4. pmap: one mapped input per local device in this example.
+# Multiple available devices are needed for actual device parallelism.
+inputs = jnp.arange(jax.local_device_count(), dtype=jnp.float32)
+parallel_square = jax.pmap(square)
+print(parallel_square(inputs))
+```
+
+**`vmap` versus `pmap`:** `vmap` introduces a batch axis into the computation; it does not itself assign one example to each device. `pmap` distributes mapped computation across devices. For data-parallel training, gradients typically need an explicit collective such as `jax.lax.pmean` before updating replicated parameters.
+
+#### Combining transformations
+
+```python
+# Compute a derivative for each example, then compile the batched computation.
+compiled_batched_grad = jax.jit(jax.vmap(jax.grad(square)))
+print(compiled_batched_grad(jnp.array([1., 2., 3.])))  # [2., 4., 6.]
+
+# In a training loop, compute both loss and gradients in a compiled function.
+loss_and_grad = jax.jit(jax.value_and_grad(loss_fn))
+loss, grads = loss_and_grad(params, x, y)
+```
+
+`jax.value_and_grad` is convenient when training requires both the loss value and its gradients. Write transformed functions with explicit inputs and outputs, avoid hidden side effects, and use JAX-compatible operations. `jit` has compilation overhead and may recompile for new input shapes or dtypes.
+
+**Modern parallelism note:** `pmap` belongs to the traditional four-function introduction. For new distributed code, also learn device meshes, explicit sharding, and `jax.shard_map`; these provide the modern context for the distributed-training section below.
+
+Sources: [JAX key concepts](https://docs.jax.dev/en/latest/key-concepts.html), [JAX quickstart](https://docs.jax.dev/en/latest/quickstart.html), and [`jax.pmap` reference](https://docs.jax.dev/en/latest/_autosummary/jax.pmap.html).
+
 ## 4. Graphs, Eager Execution, and Functional Programming
 
 - **Eager execution:** Operations execute as Python code runs, which can make debugging straightforward.
@@ -127,6 +193,6 @@ There is no universally best framework. The decision depends on model architectu
 1. All three frameworks support tensors, automatic differentiation, model training, and accelerator execution.
 2. PyTorch is commonly imperative with a dynamically recorded autograd graph.
 3. TensorFlow supports eager execution and graph execution through tools such as `tf.function`.
-4. JAX emphasizes functional transformations such as `grad`, `jit`, and `vmap`; it can compile traced functions.
+4. JAX is commonly introduced through four core transformations: `grad` (differentiation), `jit` (compilation), `vmap` (batching), and `pmap` (device parallelism). Modern distributed code also uses explicit sharding and `shard_map`.
 5. A training step follows the same core pattern: forward pass → loss → gradients → optimizer update.
 6. Distributed orchestration and distributed model training are different concerns: Ray can coordinate workers, while a framework/backend implements the training strategy.
